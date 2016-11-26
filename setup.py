@@ -2,8 +2,9 @@ from setuptools import setup, find_packages
 
 
 REQUIREMENTS = [
+    # use requirements.txt
     #'theano',
-    'lasagne',
+    #'lasagne',
     #'pymc3'
 ]
 
@@ -21,5 +22,5 @@ if __name__ == '__main__':
         author_email='maxim.v.kochurov@gmail.com',
         download_url='https://github.com/ferrine/gelato',
         install_requires=REQUIREMENTS,
-        tests_require=['pep8', 'pylint', 'coverage']
+        tests_require=['pep8', 'pylint', 'coverage', 'nose']
     )
