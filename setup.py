@@ -1,5 +1,5 @@
 from setuptools import setup, find_packages
-
+import os
 
 REQUIREMENTS = [
     # use requirements.txt
@@ -7,10 +7,17 @@ REQUIREMENTS = [
     #'lasagne',
     #'pymc3'
 ]
+REQUIREMENTS_DEV = [
+    'pep8',
+    'coverage',
+    'nose'
+]
 
-
-with open('README.md') as f:
-    LONG_DESCRIPTION = f.read()
+if os.path.exists('README.md'):
+    with open('README.md') as f:
+        LONG_DESCRIPTION = f.read()
+else:
+    LONG_DESCRIPTION = ''
 
 if __name__ == '__main__':
     setup(
@@ -22,5 +29,5 @@ if __name__ == '__main__':
         author_email='maxim.v.kochurov@gmail.com',
         download_url='https://github.com/ferrine/gelato',
         install_requires=REQUIREMENTS,
-        tests_require=['pep8', 'pylint', 'coverage', 'nose']
+        tests_require=REQUIREMENTS_DEV
     )

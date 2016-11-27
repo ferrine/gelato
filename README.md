@@ -19,4 +19,3 @@ pip install gelato
 References
 ----------
 Charles Blundell et al: "Weight Uncertainty in Neural Networks" ([arXiv preprint arXiv:1505.05424](https://arxiv.org/abs/1505.05424))
-

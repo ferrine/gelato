@@ -1,0 +1,4 @@
+pep8
+coverage
+nose
+tox

@@ -33,7 +33,7 @@ class BayesianLayer(Model, Layer):
         return super(BayesianLayer, self).add_param(spec, shape)
 
 
-class BayesianMergeLayer(BayesianLayer):
+class BayesianMergeLayer(BayesianLayer, MergeLayer):
     """Base Merge layer as proposed in [1]_
 
     References
