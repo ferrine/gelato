@@ -4,6 +4,23 @@ from functools import partial
 
 
 class DistSpec(object):
+    """Spec based on pymc3 distributions
+
+    Parameters
+    ----------
+    distcls : pymc3.Distribution
+    args : args for `distcls`
+    kwargs : kwargs for `distcls`
+
+    Returns
+    -------
+    callable spec
+
+    Usage
+    -----
+    spec = DistSpec(Normal, mu=0, sd=DistSpec(Lognormal, 0, 1))
+    """
+
     def __init__(self, distcls, *args, **kwargs):
         if not issubclass(distcls, Distribution):
             raise ValueError('We can deal with pymc3 distributions only')
@@ -15,8 +32,8 @@ class DistSpec(object):
         model = modelcontext(None)
         if name is None:
             name = 'w{}'.format(len(model.vars))
-        called_args = self.called_args(self.args, name, shape)
-        called_kwargs = self.called_kwargs(self.kwargs, name, shape)
+        called_args = self._call_args(self.args, name, shape)
+        called_kwargs = self._call_kwargs(self.kwargs, name, shape)
         called_kwargs.update(shape=shape)
         val = model.Var(
                 name, self.distcls.dist(
@@ -30,13 +47,13 @@ class DistSpec(object):
     def with_name(self, name):
         return partial(self, name=name)
 
-    def called_args(self, args, name, shape):
+    def _call_args(self, args, name, shape):
         return [
             self._call(arg, '{}_arg{}'.format(name, i), shape)
             for i, arg in enumerate(args)
         ]
 
-    def called_kwargs(self, kwargs, name, shape):
+    def _call_kwargs(self, kwargs, name, shape):
         return {
             key: self._call(arg, '{}_{}'.format(name, key), shape)
             for key, arg in kwargs.items()
