@@ -1,5 +1,9 @@
 from setuptools import setup, find_packages
+import codecs
+import re
 import os
+
+here = os.path.abspath(os.path.dirname(__file__))
 
 REQUIREMENTS = [
     # use requirements.txt
@@ -13,15 +17,22 @@ REQUIREMENTS_DEV = [
     'nose'
 ]
 
-if os.path.exists('README.md'):
-    with open('README.md') as f:
-        LONG_DESCRIPTION = f.read()
-else:
+
+try:
+    with codecs.open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
+        LONG_DESCRIPTION = readme_file.read()
+
+    with codecs.open(os.path.join(here, 'gelato', '__init__.py'), encoding='utf-8') as init_file:
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
+        VERSION = version_match.group(1)
+except Exception:
     LONG_DESCRIPTION = ''
+    VERSION = ''
 
 if __name__ == '__main__':
     setup(
         name='gelato',
+        version=VERSION,
         packages=find_packages(),
         description='Bayesian desert for Lasagne',
         long_description=LONG_DESCRIPTION,

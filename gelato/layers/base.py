@@ -30,7 +30,7 @@ class BayesianLayer(Model, Layer):
             spec = self.default_spec
         if name is not None:
             spec = spec.with_name(name)
-        return super(BayesianLayer, self).add_param(spec, shape)
+        return super(BayesianLayer, self).add_param(spec, shape, **tags)
 
 
 class BayesianMergeLayer(BayesianLayer, MergeLayer):
