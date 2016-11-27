@@ -24,9 +24,11 @@ class TestBasicLayers(unittest.TestCase):
             l = BLayer((10, 10))
             self.assertIsInstance(l.name, str)
             l = BLayer((10, 10), 'l2')
+            self.assertEqual(len(l.vars), 1)
             self.assertIsInstance(l.name, str)
             l = BMLayer([(10, 10)], name='merge')
             self.assertIsInstance(l.name, str)
+            self.assertEqual(len(l.vars), 1)
             l = BMLayer([(10, 10)])
             self.assertIsInstance(l.name, str)
 
