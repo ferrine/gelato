@@ -62,6 +62,3 @@ def set_tt_rng(new_rng):
     """
     global _tt_rng
     _tt_rng = new_rng
-
-
-

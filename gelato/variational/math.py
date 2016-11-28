@@ -6,13 +6,21 @@ c = - 0.5 * math.log(2 * math.pi)
 
 
 def kl_divergence_normal_pair(mu1, mu2, sd1, sd2):
-    elemwise_kl = math.log(sd2/sd1) + (sd2**2 + (mu1 - mu2)**2)/(2.*sd2**2) - 0.5
-    if isinstance(elemwise_kl, np.ndarray):
+    if not any([
+        isinstance(mu1, tt.Variable),
+        isinstance(mu2, tt.Variable),
+        isinstance(sd1, tt.Variable),
+        isinstance(sd2, tt.Variable),
+                ]):
+        elemwise_kl = (math.log(sd2/sd1) +
+                       (sd2**2 + (mu1-mu2)**2)/(2.*sd2**2) -
+                       0.5)   # type: np.ndarray
         return np.sum(elemwise_kl)
-    elif isinstance(elemwise_kl, tt.Variable):
-        return tt.sum(elemwise_kl)
     else:
-        return np.array([elemwise_kl])
+        elemwise_kl = (tt.log(sd2/sd1) +
+                       (sd2**2 + (mu1-mu2)**2)/(2.*sd2**2) -
+                       0.5)
+        return tt.sum(elemwise_kl)
 
 
 def kl_divergence_advifits(advifit1, advifit2):

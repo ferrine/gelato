@@ -13,7 +13,8 @@ def sample_elbo(model, population=None, samples=1, pi=1):
     model : pymc3.Model
     population : dict - maps observed_RV to its population size
         if not provided defaults to full population
-    samples : number of Monte Carlo samples used for approximation, defaults to 1
+    samples : number of Monte Carlo samples used for approximation,
+        defaults to 1
     pi : additional coefficient for KL[q(w|mu,rho)||p(w)] as proposed in [1]_
 
     Returns
@@ -23,7 +24,8 @@ def sample_elbo(model, population=None, samples=1, pi=1):
 
     Notes
     -----
-    You can pass tensors for `pi`  and `samples` to control them while training
+    You can pass tensors for `pi`  and `samples` to control them while
+        training
 
     References
     ----------
