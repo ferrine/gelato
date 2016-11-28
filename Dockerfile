@@ -6,13 +6,13 @@ MAINTAINER Maxim Kochurov <maxim.v.kochurov@gmail.com>
 RUN apt-get -qq update && apt-get install -y \
             # for user friendly docker environment
             bc \
-		    bash-completion \
-		    git \
-		    htop \
-		    tmux \
-		    vim \
+    	    bash-completion \
+    	    git \
+    	    htop \
+    	    tmux \
+    	    vim \
 
-		    # for other stuff
+    	    # for other stuff
             libopenblas-dev \
             cmake \
             zlib1g-dev \
@@ -26,8 +26,8 @@ RUN apt-get -qq update && apt-get install -y \
             # get smaller container size
             && \
             apt-get clean && \
-	        apt-get autoremove && \
-	        rm -rf /var/lib/apt/lists/*
+            apt-get autoremove && \
+            rm -rf /var/lib/apt/lists/*
 
 # install requirements for python2
 RUN /bin/bash --login -c "\
