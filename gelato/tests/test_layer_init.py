@@ -47,3 +47,6 @@ class TestBasicLayers(unittest.TestCase):
 
         self.assertFalse(ismergesub(BLayer))
         self.assertFalse(ismergesub(DenseLayer))
+
+if __name__ == '__main__':
+    unittest.main()

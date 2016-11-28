@@ -12,10 +12,6 @@ class DistSpec(object):
     args : args for `distcls`
     kwargs : kwargs for `distcls`
 
-    Returns
-    -------
-    callable spec
-
     Usage
     -----
     spec = DistSpec(Normal, mu=0, sd=DistSpec(Lognormal, 0, 1))
