@@ -36,7 +36,7 @@ def sample_elbo(model, population=None, samples=1, pi=1):
         if tot is None:
             return tt.sum(var.logpt)
         else:
-            return tt.sum(var.size / tot * var.logpt)
+            return tt.sum(tot / var.size * var.logpt)
 
     log_p_D = tt.add(*map(likelihood, model.root.observed_RVs))
     log_p_W = model.root.varlogpt + tt.sum(model.root.potentials)
