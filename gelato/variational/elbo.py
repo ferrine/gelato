@@ -15,9 +15,11 @@ def sample_elbo(model, population=None, samples=1, pi=1):
         if not provided defaults to full population
     samples : number of montecarlo samples used for approximation
     pi : additional coefficient for KL[q(w|mu,rho)||p(w)] as proposed in [1]_
+
     Returns
     -------
-    elbo, updates, SharedADVIFit
+    (E_q[elbo], V_q[elbo], updates, SharedADVIFit)
+        mean, variance of elbo, updates for random streams, shared dicts
 
     References
     ----------
@@ -33,10 +35,10 @@ def sample_elbo(model, population=None, samples=1, pi=1):
 
     def likelihood(var):
         tot = population.get(var, population.get(var.name))
-        if tot is None:
-            return tt.sum(var.logpt)
-        else:
-            return tt.sum(tot / var.size * var.logpt)
+        logpt = tt.sum(var.logpt)
+        if tot is not None:
+            logpt *= tot / var.size
+        return logpt
 
     log_p_D = tt.add(*map(likelihood, model.root.observed_RVs))
     log_p_W = model.root.varlogpt + tt.sum(model.root.potentials)
@@ -46,4 +48,4 @@ def sample_elbo(model, population=None, samples=1, pi=1):
     elbos, updates = theano.scan(fn=lambda: _elbo_,
                                  outputs_info=None,
                                  n_steps=samples)
-    return tt.mean(elbos), updates, shared
+    return tt.mean(elbos), tt.var(elbos), updates, shared

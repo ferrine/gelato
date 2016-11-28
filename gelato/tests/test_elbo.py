@@ -20,7 +20,7 @@ class TestElbo(unittest.TestCase):
             Normal('y', mu=mu, sd=1, observed=y_obs)
 
         # Create variational gradient tensor
-        elbo, updates, shared = sample_elbo(model, samples=10000)
+        elbo, _, updates, shared = sample_elbo(model, samples=10000)
 
         shared.means['mu'].set_value(post_mu)
         shared.rhos['mu'].set_value(sd2rho(post_sd))
