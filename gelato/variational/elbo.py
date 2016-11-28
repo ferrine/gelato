@@ -6,20 +6,24 @@ from .math import log_normal3
 
 def sample_elbo(model, population=None, samples=1, pi=1):
     """ pi*KL[q(w|mu,rho)||p(w)] + E_q[log p(D|w)]
-    approximated by montecarlo sampling
+    approximated by Monte Carlo sampling
 
     Parameters
     ----------
-    model : pmc3.Model
+    model : pymc3.Model
     population : dict - maps observed_RV to its population size
         if not provided defaults to full population
-    samples : number of montecarlo samples used for approximation
+    samples : number of Monte Carlo samples used for approximation, defaults to 1
     pi : additional coefficient for KL[q(w|mu,rho)||p(w)] as proposed in [1]_
 
     Returns
     -------
     (E_q[elbo], V_q[elbo], updates, SharedADVIFit)
         mean, variance of elbo, updates for random streams, shared dicts
+
+    Notes
+    -----
+    You can pass tensors for `pi`  and `samples` to control them while training
 
     References
     ----------
