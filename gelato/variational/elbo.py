@@ -41,6 +41,7 @@ def sample_elbo(model, population=None, samples=1, pi=1):
         tot = population.get(var, population.get(var.name))
         logpt = tt.sum(var.logpt)
         if tot is not None:
+            tot = tt.as_tensor(tot)
             logpt *= tot / var.size
         return logpt
 
@@ -49,6 +50,8 @@ def sample_elbo(model, population=None, samples=1, pi=1):
     log_q_W = tt.sum(log_normal3(x, mu, rho))
     _elbo_ = log_p_D + pi * (log_p_W - log_q_W)
     _elbo_ = theano.clone(_elbo_, replacements, strict=False)
+
+    samples = tt.as_tensor(samples)
     elbos, updates = theano.scan(fn=lambda: _elbo_,
                                  outputs_info=None,
                                  n_steps=samples)
