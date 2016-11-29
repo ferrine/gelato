@@ -9,4 +9,10 @@ __all__ = [
 
 class BayesianLocallyConnected2DLayer(
         six.with_metaclass(LayerModelMeta, LocallyConnected2DLayer)):
-    pass
+    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
+        clsname=LocallyConnected2DLayer.__name__,
+        doc=LocallyConnected2DLayer.__doc__
+    )
+
+    def __getattr__(self, item):
+        raise AttributeError

@@ -3,7 +3,7 @@ import functools
 import pymc3 as pm
 import pymc3.model
 import lasagne.layers.base
-from ..spec import DistSpec
+from ..spec import DistSpec, get_default_spec
 
 __all__ = [
     'LayerModelMeta',
@@ -36,7 +36,7 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
             if not value:
                 self._name = None
             else:
-                self._name = value
+                self._name = str(value)
 
         cls._name = None
         cls.name = property(fget, fset)
@@ -65,14 +65,12 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
 
         def add_param(self, spec, shape, name=None, **tags):
             if not isinstance(spec, DistSpec):
-                spec = self.default_spec
+                spec = getattr(self, 'default_spec', get_default_spec())
             if name is not None:
                 spec = spec.with_name(name)
             return lasagne.layers.base.Layer.add_param(
                 self, spec, shape, **tags)
         cls.add_param = add_param
-        if not hasattr(cls, 'default_spec'):
-            cls.default_spec = DistSpec(pm.Normal, mu=0, sd=15)
 
         # needed for working with lasagne tools
         def wrap_getitem(__getitem__):

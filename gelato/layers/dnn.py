@@ -10,9 +10,21 @@ __all__ = [
 
 class BayesianConv2DDNNLayer(
         six.with_metaclass(LayerModelMeta, Conv2DDNNLayer)):
-    pass
+    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
+        clsname=Conv2DDNNLayer.__name__,
+        doc=Conv2DDNNLayer.__doc__
+    )
+
+    def __getattr__(self, item):
+        raise AttributeError
 
 
 class BayesianConv3DDNNLayer(
         six.with_metaclass(LayerModelMeta, Conv3DDNNLayer)):
-    pass
+    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
+        clsname=Conv3DDNNLayer.__name__,
+        doc=Conv3DDNNLayer.__doc__
+    )
+
+    def __getattr__(self, item):
+        raise AttributeError

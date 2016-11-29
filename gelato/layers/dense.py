@@ -10,9 +10,21 @@ __all__ = [
 
 class BayesianDenseLayer(
         six.with_metaclass(LayerModelMeta, DenseLayer)):
-    pass
+    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
+        clsname=DenseLayer.__name__,
+        doc=DenseLayer.__doc__
+    )
+
+    def __getattr__(self, item):
+        raise AttributeError
 
 
 class BayesianNINLayer(
         six.with_metaclass(LayerModelMeta, NINLayer)):
-    pass
+    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
+        clsname=NINLayer.__name__,
+        doc=NINLayer.__doc__
+    )
+
+    def __getattr__(self, item):
+        raise AttributeError

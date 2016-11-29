@@ -2,6 +2,34 @@ import pymc3 as pm
 import pymc3.distributions.distribution
 import functools
 
+__all__ = [
+    'get_default_spec',
+    'set_default_spec',
+    'DistSpec',
+    'PartialSpec',
+    'UniformSpec',
+    'NormalSpec',
+    'BetaSpec',
+    'ExponentialSpec',
+    'LaplaceSpec',
+    'StudentTSpec',
+    'CauchySpec',
+    'HalfCauchySpec',
+    'GammaSpec',
+    'WeibullSpec',
+    'HalfStudentTSpec',
+    'LognormalSpec',
+    'ChiSquaredSpec',
+    'HalfNormalSpec',
+    'WaldSpec',
+    'ParetoSpec',
+    'InverseGammaSpec',
+    'ExGaussianSpec',
+    'VonMisesSpec',
+    'SkewNormalSpec',
+    'NormalMixtureSpec'
+]
+
 
 class DistSpec(object):
     """Spec based on pymc3 distributions
@@ -21,7 +49,9 @@ class DistSpec(object):
         if not issubclass(
                 distcls,
                 pymc3.distributions.distribution.Distribution):
-            raise ValueError('We can deal with pymc3 distributions only')
+            raise ValueError('We can deal with pymc3 '
+                             'distributions only, got {!r} instead'
+                             .format(distcls))
         self.args = args
         self.kwargs = kwargs
         self.distcls = distcls
@@ -75,3 +105,192 @@ class DistSpec(object):
         return template.format(cls=self.distcls.__name__,
                                args=self.args,
                                kwargs=self.kwargs)
+
+
+_default_spec = DistSpec(pm.Normal, mu=0, sd=10)
+
+
+def get_default_spec():
+    return _default_spec
+
+
+def set_default_spec(spec):
+    global _default_spec
+    _default_spec = spec
+
+
+class PartialSpec(DistSpec):
+    spec = None
+
+    def __init__(self, *args, **kwargs):
+        super(PartialSpec, self).__init__(self.spec, *args, **kwargs)
+
+
+class UniformSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Uniform.__name__,
+        doc=pm.Uniform.__doc__
+    )
+    spec = pm.Uniform
+
+
+class NormalSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Normal.__name__,
+        doc=pm.Normal.__doc__
+    )
+    spec = pm.Normal
+
+
+class BetaSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Beta.__name__,
+        doc=pm.Beta.__doc__
+    )
+    spec = pm.Beta
+
+
+class ExponentialSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Exponential.__name__,
+        doc=pm.Exponential.__doc__
+    )
+    spec = pm.Exponential
+
+
+class LaplaceSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Laplace.__name__,
+        doc=pm.Laplace.__doc__
+    )
+    spec = pm.Laplace
+
+
+class StudentTSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.StudentT.__name__,
+        doc=pm.StudentT.__doc__
+    )
+    spec = pm.StudentT
+
+
+class CauchySpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Cauchy.__name__,
+        doc=pm.Cauchy.__doc__
+    )
+    spec = pm.Cauchy
+
+
+class HalfCauchySpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.HalfCauchy.__name__,
+        doc=pm.HalfCauchy.__doc__
+    )
+    spec = pm.HalfCauchy
+
+
+class GammaSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Gamma.__name__,
+        doc=pm.Gamma.__doc__
+    )
+    spec = pm.Gamma
+
+
+class WeibullSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Weibull.__name__,
+        doc=pm.Weibull.__doc__
+    )
+    spec = pm.Weibull
+
+
+class HalfStudentTSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.HalfStudentT.distribution.__name__,
+        doc="""Bounded StudentT with support on [0, +inf]\n{doc}""".format(
+            doc=pm.StudentT.__doc__
+        )
+    )
+    spec = pm.HalfStudentT
+
+
+class LognormalSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Lognormal.__name__,
+        doc=pm.Lognormal.__doc__
+    )
+    spec = pm.Lognormal
+
+
+class ChiSquaredSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.ChiSquared.__name__,
+        doc=pm.ChiSquared.__doc__
+    )
+    spec = pm.ChiSquared
+
+
+class HalfNormalSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.HalfNormal.__name__,
+        doc=pm.HalfNormal.__doc__
+    )
+    spec = pm.HalfNormal
+
+
+class WaldSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Wald.__name__,
+        doc=pm.Wald.__doc__
+    )
+    spec = pm.Wald
+
+
+class ParetoSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.Pareto.__name__,
+        doc=pm.Pareto.__doc__
+    )
+    spec = pm.Pareto
+
+
+class InverseGammaSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.InverseGamma.__name__,
+        doc=pm.InverseGamma.__doc__
+    )
+    spec = pm.InverseGamma
+
+
+class ExGaussianSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.ExGaussian.__name__,
+        doc=pm.ExGaussian.__doc__
+    )
+    spec = pm.ExGaussian
+
+
+class VonMisesSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.VonMises.__name__,
+        doc=pm.VonMises.__doc__
+    )
+    spec = pm.VonMises
+
+
+class SkewNormalSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.SkewNormal.__name__,
+        doc=pm.SkewNormal.__doc__
+    )
+    spec = pm.SkewNormal
+
+
+class NormalMixtureSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.SkewNormal.__name__,
+        doc=pm.SkewNormal.__doc__
+    )
+    spec = pm.NormalMixture
