@@ -1,8 +1,12 @@
-import gelato.variational.math
 import theano.tensor as tt
 import theano
-import gelato.variational.utils as _utils
-import gelato.variational.math as _math
+from .utils import (variational_replacements,
+                    apply_replacements)
+from .math import flatten, log_normal3
+
+__all__ = [
+    'sample_elbo'
+]
 
 
 def sample_elbo(model, population=None, samples=1, pi=1, vp=None):
@@ -39,10 +43,10 @@ def sample_elbo(model, population=None, samples=1, pi=1, vp=None):
     if population is None:
         population = dict()
     if vp is None:
-        vp = _utils.variational_replacements(model.root)
-    x = gelato.variational.math.flatten(vp.mapping.values())
-    mu = gelato.variational.math.flatten(vp.shared.means.values())
-    rho = gelato.variational.math.flatten(vp.shared.rhos.values())
+        vp = variational_replacements(model.root)
+    x = flatten(vp.mapping.values())
+    mu = flatten(vp.shared.means.values())
+    rho = flatten(vp.shared.rhos.values())
 
     def likelihood(var):
         tot = population.get(var, population.get(var.name))
@@ -54,9 +58,9 @@ def sample_elbo(model, population=None, samples=1, pi=1, vp=None):
 
     log_p_D = tt.add(*map(likelihood, model.root.observed_RVs))
     log_p_W = model.root.varlogpt + tt.sum(model.root.potentials)
-    log_q_W = tt.sum(_math.log_normal3(x, mu, rho))
+    log_q_W = tt.sum(log_normal3(x, mu, rho))
     _elbo_ = log_p_D + pi * (log_p_W - log_q_W)
-    _elbo_ = _utils.apply_replacements(_elbo_, vp)
+    _elbo_ = apply_replacements(_elbo_, vp)
 
     samples = tt.as_tensor(samples)
     elbos, updates = theano.scan(fn=lambda: _elbo_,

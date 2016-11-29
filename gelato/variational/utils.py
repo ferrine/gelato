@@ -3,8 +3,8 @@ from collections import namedtuple, OrderedDict
 import numpy as np
 import theano
 import theano.tensor as tt
-from gelato.random import tt_rng
-import gelato.variational.math as _math
+from ..random import tt_rng
+from .math import rho2sd
 
 SharedNodes = namedtuple('SharedNodes', 'means, rhos')
 
@@ -45,7 +45,7 @@ def random_node(old):
             old.tag.test_value,
             name='{}_mu_shared'.format(old.name))
         e = tt_rng().normal(rho.shape)
-    return mu + _math.rho2sd(rho) * e, mu, rho
+    return mu + rho2sd(rho) * e, mu, rho
 
 
 def variational_replacements(model):

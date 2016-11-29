@@ -1,5 +1,5 @@
 import lasagne.layers.helper as _helper
-import gelato.variational.utils as _utils
+from ..variational.utils import apply_replacements
 
 __all__ = [
     'get_output'
@@ -49,9 +49,9 @@ def get_output(layer_or_layers, inputs=None,
     if vp is None:
         return output
     elif not isinstance(output, list):
-        return _utils.apply_replacements(output, vp, deterministic)
+        return apply_replacements(output, vp, deterministic)
     else:
         return [
-            _utils.apply_replacements(out, vp, deterministic)
+            apply_replacements(out, vp, deterministic)
             for out in output
         ]
