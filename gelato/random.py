@@ -8,9 +8,18 @@ particular seed to facilitate reproducibility.
 import numpy as np
 from theano.sandbox.rng_mrg import MRG_RandomStreams
 
+__all__ = [
+    'np_rng',
+    'set_np_rng',
+    'tt_rng',
+    'set_tt_rng',
+    'get_rng',
+    'set_rng'
+]
 
 _np_rng = np.random
 _tt_rng = MRG_RandomStreams()
+del (np, MRG_RandomStreams)
 
 
 def np_rng():

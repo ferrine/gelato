@@ -1,20 +1,18 @@
 import unittest
 from pymc3.model import Model
-from lasagne.layers import DenseLayer, LSTMLayer
 
 from gelato.layers.base import BayesianLayer, BayesianMergeLayer
-from gelato.layers.utils import islayersub, ismergesub
 
 
 class BLayer(BayesianLayer):
-    def __init__(self, incomming, name=None, model=None):
-        super(BLayer, self).__init__(incomming, name, model)
+    def __init__(self, incomming, name=None):
+        super(BLayer, self).__init__(incomming, name)
         self.W = self.add_param(None, (10, 10), name='W')
 
 
 class BMLayer(BayesianMergeLayer):
-    def __init__(self, incommings, name=None, model=None):
-        super(BMLayer, self).__init__(incommings, name, model)
+    def __init__(self, incommings, name=None):
+        super(BMLayer, self).__init__(incommings, name)
         self.W = self.add_param(None, (10, 10))
 
 
@@ -34,19 +32,6 @@ class TestBasicLayers(unittest.TestCase):
 
         self.assertRaises(TypeError, BMLayer, (10, 10))
         self.assertRaises(TypeError, BLayer, (10, 10))
-
-    def test_issubclass(self):
-        self.assertTrue(islayersub(BLayer))
-        self.assertTrue(islayersub(DenseLayer))
-
-        self.assertFalse(islayersub(LSTMLayer))
-        self.assertFalse(islayersub(BMLayer))
-
-        self.assertTrue(ismergesub(BMLayer))
-        self.assertTrue(ismergesub(LSTMLayer))
-
-        self.assertFalse(ismergesub(BLayer))
-        self.assertFalse(ismergesub(DenseLayer))
 
 if __name__ == '__main__':
     unittest.main()

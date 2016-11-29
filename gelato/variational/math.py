@@ -23,28 +23,13 @@ def kl_divergence_normal_pair(mu1, mu2, sd1, sd2):
         return tt.sum(elemwise_kl)
 
 
-def kl_divergence_advifits(advifit1, advifit2):
-    if not set(advifit1.means.keys()) == set(advifit2.means.keys()):
-        raise ValueError('Advifits are not pared')
-    keys = advifit1.means.keys()
-    total = [kl_divergence_normal_pair(
-                advifit1.means[key],
-                advifit2.means[key],
-                advifit1.stds[key],
-                advifit2.stds[key]
-            )
-             for key in keys
-             ]
-    return np.sum(total)
-
-
 def log_normal(x, mean, std, eps=0.0):
     std += eps
     return c - tt.log(tt.abs_(std)) - (x - mean) ** 2 / (2 * std ** 2)
 
 
 def log_normal3(x, mean, rho, eps=0.0):
-    std = tt.log1p(tt.exp(rho))
+    std = ttrho2sd(rho)
     return log_normal(x, mean, std, eps)
 
 
@@ -94,3 +79,8 @@ def rho2sd(rho):
         return ttrho2sd(rho)
     else:
         return nptho2sd(rho)
+
+
+def flatten(tensors):
+    joined = tt.concatenate([var.ravel() for var in tensors])
+    return joined

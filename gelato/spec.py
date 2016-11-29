@@ -1,6 +1,6 @@
-from pymc3.model import modelcontext
-from pymc3.distributions.distribution import Distribution
-from functools import partial
+import pymc3 as pm
+import pymc3.distributions.distribution
+import functools
 
 
 class DistSpec(object):
@@ -18,14 +18,17 @@ class DistSpec(object):
     """
 
     def __init__(self, distcls, *args, **kwargs):
-        if not issubclass(distcls, Distribution):
+        if not issubclass(
+                distcls,
+                pymc3.distributions.distribution.Distribution):
             raise ValueError('We can deal with pymc3 distributions only')
         self.args = args
         self.kwargs = kwargs
         self.distcls = distcls
 
     def __call__(self, shape, name=None):
-        model = modelcontext(None)
+        print(self)
+        model = pm.modelcontext(None)
         if name is None:
             name = 'w{}'.format(len(model.vars))
         called_args = self._call_args(self.args, name, shape)
@@ -37,11 +40,11 @@ class DistSpec(object):
                     **called_kwargs
                 ),
             )
-        val.tag.test_value = val.random()
+        val.tag.test_value = val.random().reshape(shape)
         return val
 
     def with_name(self, name):
-        return partial(self, name=name)
+        return functools.partial(self, name=name)
 
     def _call_args(self, args, name, shape):
         return [
@@ -67,3 +70,9 @@ class DistSpec(object):
                 )
         else:
             return arg
+
+    def __repr__(self):
+        template = '<{cls}: {args!r}; {kwargs!r}>'
+        return template.format(cls=self.distcls.__name__,
+                               args=self.args,
+                               kwargs=self.kwargs)

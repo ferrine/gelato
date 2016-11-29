@@ -1,74 +1,51 @@
 from collections import namedtuple, OrderedDict
+
 import numpy as np
 import theano
 import theano.tensor as tt
-from gelato.variational.math import npsd2rho, rho2sd
 from gelato.random import tt_rng
+import gelato.variational.math as _math
+
+SharedNodes = namedtuple('SharedNodes', 'means, rhos')
 
 
-SharedADVIFit = namedtuple('SharedADVIFit', 'means, rhos')
+class VariationalParams(namedtuple('VariationalParamsBase', 'mapping,shared')):
+    @property
+    def params(self):
+        return list(self.shared.means.values())+list(self.shared.rhos.values())
 
 
-def random_node_from_numpy(mu, sd, name):
-    """
-
-    Parameters
-    ----------
-    mu : np.array
-    sd : np.array
-    name : str
-
-    Returns
-    -------
-    tuple : (mu + log(1+exp(rho))*e, mu, rho)
-        mu - shared variable
-        rho - shared variable
-    """
-    rho = theano.shared(npsd2rho(sd),
-                        name='{}_rho_shared'.format(name))
-    mu = theano.shared(mu, name='{}_mu_shared'.format(name))
-    e = tt_rng().normal(rho.shape)
-    return mu + rho2sd(rho) * e, mu, rho, e
-
-
-def random_node(mu):
-    rho = theano.shared(np.ones(mu.tag.test_value.shape))
-    mu = theano.shared(mu.tag.test_value,
-                       name='{}_mu_shared'.format(mu.name))
-    e = tt_rng().normal(rho.shape)
-    return mu + rho2sd(rho) * e, mu, rho, e
-
-
-def variational_replacements_from_advifit(model, advifit=None):
-    """Util for getting variational replacements from advifit
+def random_node(old):
+    """Creates random node with shared params
 
     Parameters
     ----------
-    model : pymc3.Model
-    advifit : pymc3.variational.advi.ADVIfit
+    old : pm.FreeRV
 
     Returns
     -------
-    tuple : (replacements, epsilons, SharedADVIfit)
+    tuple : (new node, shared mu, shared rho)
     """
-    replacements = OrderedDict()
-    means = OrderedDict()
-    rhos = OrderedDict()
-    es = OrderedDict()
-    for var in model.root.vars:
-        if var.name in advifit.means:
-            v, mu, rho, e = random_node_from_numpy(
-                advifit.means[var.name],
-                advifit.stds[var.name],
-                var.name
-            )
-            replacements[var] = v
-            means[var.name] = mu
-            rhos[var.name] = rho
-            es[var.name] = es
-        else:
-            continue
-    return replacements, es, SharedADVIFit(means, rhos)
+    if len(old.broadcastable) > 0:
+        rho = theano.shared(
+            np.ones(old.tag.test_value.shape),
+            name='{}_rho_shared'.format(old.name),
+            broadcastable=old.broadcastable)
+        mu = theano.shared(
+            old.tag.test_value,
+            name='{}_mu_shared'.format(old.name),
+            broadcastable=old.broadcastable)
+        e = tt.patternbroadcast(
+            tt_rng().normal(rho.shape), old.broadcastable)
+    else:
+        rho = theano.shared(
+            np.ones(old.tag.test_value.shape),
+            name='{}_rho_shared'.format(old.name))
+        mu = theano.shared(
+            old.tag.test_value,
+            name='{}_mu_shared'.format(old.name))
+        e = tt_rng().normal(rho.shape)
+    return mu + _math.rho2sd(rho) * e, mu, rho
 
 
 def variational_replacements(model):
@@ -80,37 +57,42 @@ def variational_replacements(model):
 
     Returns
     -------
-    tuple : (replacements, epsilons, SharedADVIfit)
+    VariationalParams : (mapping, SharedNodes)
+
+    Notes
+    -----
+    Mappings and shared vars dicts are all OrderedDicts
     """
     replacements = OrderedDict()
     means = OrderedDict()
     rhos = OrderedDict()
-    es = OrderedDict()
-    for var in model.root.vars:
-        v, mu, rho, e = random_node(var)
+    for var in model.vars:
+        v, mu, rho = random_node(var)
         replacements[var] = v
         means[var.name] = mu
         rhos[var.name] = rho
-        es[var.name] = e
-    return replacements, es, SharedADVIFit(means, rhos)
+    return VariationalParams(replacements, SharedNodes(means, rhos))
 
 
-def refresh_epsilon(es):
-    """Create replacement dictionary for epsilons
+def apply_replacements(out, variational_params, deterministic=False):
+    """
+
     Parameters
     ----------
-    es
+    out : target node of the graph for which we apply replacements
+    variational_params : VariationalParams
+    deterministic : bool - whether do deterministic or stochastic replacements
 
     Returns
     -------
-
+    tt.Variable
+        cloned node with applied replacements
     """
-    es_replacement = OrderedDict()
-    for e in es:
-        es_replacement[e] = tt_rng().normal(e.shape)
-    return es_replacement
-
-
-def flatten(tensors):
-    joined = tt.concatenate([var.ravel() for var in tensors])
-    return joined
+    if deterministic:
+        replacements = OrderedDict(zip(
+            variational_params.mapping.keys(),
+            variational_params.shared.means.values()
+        ))
+    else:
+        replacements = variational_params.mapping
+    return theano.clone(out, replacements, strict=False)

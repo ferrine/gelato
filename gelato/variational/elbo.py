@@ -1,10 +1,11 @@
+import gelato.variational.math
 import theano.tensor as tt
 import theano
-from .utils import variational_replacements, flatten
-from .math import log_normal3
+import gelato.variational.utils as _utils
+import gelato.variational.math as _math
 
 
-def sample_elbo(model, population=None, samples=1, pi=1):
+def sample_elbo(model, population=None, samples=1, pi=1, vp=None):
     """ pi*KL[q(w|mu,rho)||p(w)] + E_q[log p(D|w)]
     approximated by Monte Carlo sampling
 
@@ -16,10 +17,13 @@ def sample_elbo(model, population=None, samples=1, pi=1):
     samples : number of Monte Carlo samples used for approximation,
         defaults to 1
     pi : additional coefficient for KL[q(w|mu,rho)||p(w)] as proposed in [1]_
+    vp : gelato.variational.utils.VariatioanalParams
+        tuple, holding nodes mappings with shared params, if None - new
+        will be created
 
     Returns
     -------
-    (E_q[elbo], V_q[elbo], updates, SharedADVIFit)
+    (E_q[elbo], V_q[elbo], updates, VariationalParams)
         mean, variance of elbo, updates for random streams, shared dicts
 
     Notes
@@ -34,10 +38,11 @@ def sample_elbo(model, population=None, samples=1, pi=1):
     """
     if population is None:
         population = dict()
-    replacements, _, shared = variational_replacements(model)
-    x = flatten(replacements.values())
-    mu = flatten(shared.means.values())
-    rho = flatten(shared.rhos.values())
+    if vp is None:
+        vp = _utils.variational_replacements(model.root)
+    x = gelato.variational.math.flatten(vp.mapping.values())
+    mu = gelato.variational.math.flatten(vp.shared.means.values())
+    rho = gelato.variational.math.flatten(vp.shared.rhos.values())
 
     def likelihood(var):
         tot = population.get(var, population.get(var.name))
@@ -49,12 +54,12 @@ def sample_elbo(model, population=None, samples=1, pi=1):
 
     log_p_D = tt.add(*map(likelihood, model.root.observed_RVs))
     log_p_W = model.root.varlogpt + tt.sum(model.root.potentials)
-    log_q_W = tt.sum(log_normal3(x, mu, rho))
+    log_q_W = tt.sum(_math.log_normal3(x, mu, rho))
     _elbo_ = log_p_D + pi * (log_p_W - log_q_W)
-    _elbo_ = theano.clone(_elbo_, replacements, strict=False)
+    _elbo_ = _utils.apply_replacements(_elbo_, vp)
 
     samples = tt.as_tensor(samples)
     elbos, updates = theano.scan(fn=lambda: _elbo_,
                                  outputs_info=None,
                                  n_steps=samples)
-    return tt.mean(elbos), tt.var(elbos), updates, shared
+    return tt.mean(elbos), tt.var(elbos), updates, vp
