@@ -27,7 +27,6 @@ class DistSpec(object):
         self.distcls = distcls
 
     def __call__(self, shape, name=None):
-        print(self)
         model = pm.modelcontext(None)
         if name is None:
             name = 'w{}'.format(len(model.vars))
