@@ -26,6 +26,7 @@ I use generic approach for decorating all Lasagne at once. Thus, for using Gelat
 
 
 ```python
+import theano
 import pymc3 as pm
 import numpy as np
 import lasagne.nonlinearities as nonlinearities
@@ -44,7 +45,7 @@ sd = .1
 x, y = generate_data(intercept, slope, sd=sd)
 x = np.matrix(x).T
 y = np.matrix(y).T
-input_var = theano.shared(self.x)
+input_var = theano.shared(x)
 
 with pm.Model() as model:
     inp = InputLayer(x.shape, input_var=input_var)
