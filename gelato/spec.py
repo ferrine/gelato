@@ -290,7 +290,7 @@ class SkewNormalSpec(PartialSpec):
 
 class NormalMixtureSpec(PartialSpec):
     __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.SkewNormal.__name__,
-        doc=pm.SkewNormal.__doc__
+        dist=pm.NormalMixture.__name__,
+        doc=pm.NormalMixture.__doc__
     )
     spec = pm.NormalMixture
