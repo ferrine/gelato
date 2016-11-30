@@ -2,10 +2,9 @@ import unittest
 import theano
 import pymc3 as pm
 import numpy as np
-import lasagne.layers as layers
 import lasagne.updates as updates
 import lasagne.nonlinearities as to
-from gelato.layers.dense import DenseLayer
+from gelato.layers import DenseLayer, InputLayer
 from gelato.variational.elbo import sample_elbo
 from gelato.layers.helper import get_output
 from .datasets import generate_data
@@ -23,8 +22,8 @@ class TestWorkflow(unittest.TestCase):
     def test_workflow(self):
         input_var = theano.shared(self.x)
         with pm.Model() as model:
-            inp = layers.InputLayer(self.x.shape, input_var=input_var)
-            out = BayesDenseLayer(inp, 1, nonlinearity=to.identity)
+            inp = InputLayer(self.x.shape, input_var=input_var)
+            out = DenseLayer(inp, 1, nonlinearity=to.identity)
             pm.Normal('y', mu=get_output(out),
                       sd=self.sd,
                       observed=self.y)
@@ -32,7 +31,7 @@ class TestWorkflow(unittest.TestCase):
         upd_adam = updates.adagrad(-elbo, vp.params)
         upd_rng.update(upd_adam)
         step = theano.function([], elbo, updates=upd_rng)
-        for i in range(100):
+        for i in range(1000):
             step()
         self.assertRaises(ValueError, get_output, out, deterministic=True)
         preds = get_output(out, vp=vp, deterministic=True)
