@@ -5,14 +5,14 @@ import numpy as np
 import lasagne.layers as layers
 import lasagne.updates as updates
 import lasagne.nonlinearities as to
-from gelato.layers.base import BayesianLayer
+from gelato.layers.base import Layer
 from gelato.spec import DistSpec
 from gelato.variational.elbo import sample_elbo
 from gelato.layers.helper import get_output
 from .datasets import generate_data
 
 
-class BayesDenseLayer(layers.DenseLayer, BayesianLayer):
+class BayesDenseLayer(layers.DenseLayer, Layer):
     default_spec = DistSpec(pm.Normal, sd=DistSpec(pm.Lognormal, sd=1))
 
 

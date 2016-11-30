@@ -1,16 +1,16 @@
 import unittest
 from pymc3.model import Model
 
-from gelato.layers.base import BayesianLayer, BayesianMergeLayer
+from gelato.layers.base import Layer, MergeLayer
 
 
-class BLayer(BayesianLayer):
+class BLayer(Layer):
     def __init__(self, incomming, name=None):
         super(BLayer, self).__init__(incomming, name)
         self.W = self.add_param(None, (10, 10), name='W')
 
 
-class BMLayer(BayesianMergeLayer):
+class BMLayer(MergeLayer):
     def __init__(self, incommings, name=None):
         super(BMLayer, self).__init__(incommings, name)
         self.W = self.add_param(None, (10, 10))
