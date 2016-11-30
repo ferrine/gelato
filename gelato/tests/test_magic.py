@@ -36,3 +36,6 @@ class TestWorkflow(unittest.TestCase):
         self.assertRaises(ValueError, get_output, out, deterministic=True)
         preds = get_output(out, vp=vp, deterministic=True)
         np.testing.assert_allclose(preds.eval(), self.y, rtol=0, atol=1)
+
+if __name__ == '__main__':
+    unittest.main()
