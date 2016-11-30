@@ -57,7 +57,8 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
             def wrapped(_cls_, *args, **kwargs):
                 instance = __new__(_cls_, *args, **kwargs)
                 if instance.isroot:
-                    raise TypeError('Unable to init as root model')
+                    raise TypeError('Unable to init as root model, '
+                                    'need to be inside pymc3.Model context')
                 return instance
             return classmethod(wrapped)
 
