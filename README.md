@@ -12,8 +12,9 @@ Installation
 
 ```bash
 git clone https://github.com/ferrine/gelato
-pip install -r gelato/requirements.txt
-pip install gelato
+cd gelato
+pip install -r requirements.txt
+pip install .
 ```
 
 Usage
