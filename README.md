@@ -52,7 +52,7 @@ input_var = theano.shared(x)
 with pm.Model() as model:
     inp = InputLayer(x.shape, input_var=input_var)
     hierarchical prior on W
-    out = DenseLayer(inp, 1, W=W=NormalSpec(sd=LognormalSpec()), nonlinearity=nonlinearities.identity)
+    out = DenseLayer(inp, 1, W=NormalSpec(sd=LognormalSpec()), nonlinearity=nonlinearities.identity)
     pm.Normal('y', mu=get_output(out),
               sd=sd,
               observed=y)
