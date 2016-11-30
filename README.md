@@ -18,7 +18,7 @@ pip install gelato
 
 Usage
 -----
-I use generic approach for decorating all Lasagne at once. Thus, for using Gelato you need to replace import statements for layers only. For constructing a network, you need to be in pm.Model context environment.
+I use generic approach for decorating all Lasagne at once. Thus, for using Gelato you need to replace import statements for layers only. For constructing a network you need to be the in pm.Model context environment.
 
 **Warning**
  - `gelato.layers.helper` module, it is not equivalent to `lasagne.layers.helper`, it declares only `get_output` function.
@@ -73,7 +73,7 @@ try:
 except KeyboardInterrupt:
     pass
     
-stohastic_preds = get_output(out, vp=vp)
+stochastic_preds = get_output(out, vp=vp)
 deterministic_preds = get_output(out, vp=vp, deterministic=True)
 # if you don't pass `vp` to `get_output` you will get output without replacements in graph
 ```
