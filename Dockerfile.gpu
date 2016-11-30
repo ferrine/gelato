@@ -1,0 +1,8 @@
+FROM kaixhin/theano
+
+MAINTAINER Maxim Kochurov <maxim.v.kochurov@gmail.com>
+
+RUN pip install -U \
+        git+git://github.com/Lasagne/Lasagne.git \
+        git+git://github.com/pymc-devs/pymc3.git@3.1 \
+        git+git://github.com/ferrine/gelato.git
