@@ -22,8 +22,8 @@ try:
     with codecs.open(os.path.join(here, 'README.md'), encoding='utf-8') as readme_file:
         LONG_DESCRIPTION = readme_file.read()
 
-    with codecs.open(os.path.join(here, 'gelato', '__init__.py'), encoding='utf-8') as init_file:
-        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", init_file.read(), re.M)
+    with codecs.open(os.path.join(here, 'gelato', 'version.py'), encoding='utf-8') as version_file:
+        version_match = re.search(r"^__version__ = ['\"]([^'\"]*)['\"]", version_file.read(), re.M)
         VERSION = version_match.group(1)
 except Exception:
     LONG_DESCRIPTION = ''
