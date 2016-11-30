@@ -1,5 +1,6 @@
 import six
 import functools
+import inspect
 import pymc3 as pm
 import pymc3.model
 import lasagne.layers.base
@@ -7,8 +8,8 @@ from ..spec import DistSpec, get_default_spec
 
 __all__ = [
     'LayerModelMeta',
-    'BayesianLayer',
-    'BayesianMergeLayer'
+    'Layer',
+    'MergeLayer'
 ]
 
 
@@ -86,29 +87,34 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
         cls.__getitem__ = wrap_getitem(cls.__getitem__)
 
 
-class BayesianLayer(six.with_metaclass(
-        LayerModelMeta, lasagne.layers.base.Layer)):
-    """Base layer as proposed in [1]_
+def bayes(layercls):
+    try:
+        issubcls = issubclass(layercls, lasagne.layers.base.Layer)
+    except TypeError:
+        raise TypeError('{} needs to be a Layer subclass'
+                        .format(layercls))
+    if issubcls:
+        if type(layercls) is LayerModelMeta:
+            raise TypeError('{} is already bayesian'
+                            .format(layercls))
+        else:
+            class BayesianAnalog(
+                    six.with_metaclass(LayerModelMeta, layercls)
+                    ):
+                pass
+            frm = inspect.stack()[1]
+            mod = inspect.getmodule(frm[0])
+            if mod is None:
+                modname = '__main__'
+            else:
+                modname = mod.__name__
+            BayesianAnalog.__module__ = modname
+            BayesianAnalog.__doc__ = layercls.__doc__
+            BayesianAnalog.__name__ = layercls.__name__
+            return BayesianAnalog
+    else:
+        raise TypeError('{} needs to be a Layer subclass'
+                        .format(layercls))
 
-    References
-    ----------
-    .. [1] Charles Blundell et al: "Weight Uncertainty in Neural Networks"
-        arXiv preprint arXiv:1505.05424
-    """
-    def __getattr__(self, item):
-        # too many annoying type checkers in IDE
-        # that fixed them
-        raise AttributeError
-
-
-class BayesianMergeLayer(six.with_metaclass(
-        LayerModelMeta, lasagne.layers.base.MergeLayer)):
-    """Base Merge layer as proposed in [1]_
-
-    References
-    ----------
-    .. [1] Charles Blundell et al: "Weight Uncertainty in Neural Networks"
-        arXiv preprint arXiv:1505.05424
-    """
-    def __getattr__(self, item):
-        raise AttributeError
+Layer = bayes(lasagne.layers.base.Layer)
+MergeLayer = bayes(lasagne.layers.base.MergeLayer)

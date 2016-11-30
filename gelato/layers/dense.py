@@ -1,30 +1,11 @@
-import six
-from lasagne.layers.dense import *
-from .base import LayerModelMeta
-
-__all__ = [
-    "BayesianDenseLayer",
-    "BayesianNINLayer",
-]
-
-
-class BayesianDenseLayer(
-        six.with_metaclass(LayerModelMeta, DenseLayer)):
-    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
-        clsname=DenseLayer.__name__,
-        doc=DenseLayer.__doc__
-    )
-
-    def __getattr__(self, item):
-        raise AttributeError
-
-
-class BayesianNINLayer(
-        six.with_metaclass(LayerModelMeta, NINLayer)):
-    __doc__ = """Bayesian{clsname}\n\n{doc}""".format(
-        clsname=NINLayer.__name__,
-        doc=NINLayer.__doc__
-    )
-
-    def __getattr__(self, item):
-        raise AttributeError
+import sys
+from lasagne.layers.dense import __all__
+import lasagne.layers.dense as __cloned
+from .base import bayes as __bayes
+__module = sys.modules[__name__]
+del sys
+for obj_name in __all__:
+    try:
+        setattr(__module, obj_name, __bayes(getattr(__cloned, obj_name)))
+    except TypeError:
+        setattr(__module, obj_name, getattr(__cloned, obj_name))
