@@ -86,6 +86,9 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
 
         cls.__getitem__ = wrap_getitem(cls.__getitem__)
 
+    def __repr__(self):
+        return '{}.{}'.format(self.__module__, self.__name__)
+
 
 def bayes(layercls):
     try:
