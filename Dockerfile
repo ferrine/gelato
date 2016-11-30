@@ -36,7 +36,7 @@ RUN /bin/bash --login -c "\
     pip install -U \
     git+git://github.com/Theano/Theano.git \
     git+git://github.com/Lasagne/Lasagne.git \
-    git+git://github.com/ferrine/pymc3.git@user_model \
+    git+git://github.com/pymc-devs/pymc3.git@3.1 \
     git+git://github.com/ferrine/gelato.git && \
     source deactivate \
     "
@@ -48,7 +48,7 @@ RUN /bin/bash --login -c "\
     pip install -U \
     git+git://github.com/Theano/Theano.git \
     git+git://github.com/Lasagne/Lasagne.git \
-    git+git://github.com/ferrine/pymc3.git@user_model \
+    git+git://github.com/pymc-devs/pymc3.git@3.1 \
     git+git://github.com/ferrine/gelato.git && \
     source deactivate \
     "
