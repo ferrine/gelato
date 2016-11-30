@@ -1,6 +1,11 @@
-FROM kaixhin/theano
+FROM kaixhin/cuda-theano:8.0
 
 MAINTAINER Maxim Kochurov <maxim.v.kochurov@gmail.com>
+
+RUN apt-get update && apt-get install -y \
+            libpng-dev \
+            libfreetype-dev && \
+            rm -rf /var/lib/apt/lists/*
 
 RUN pip install -U \
         git+git://github.com/Lasagne/Lasagne.git \
