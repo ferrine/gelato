@@ -27,10 +27,10 @@ class TestWorkflow(unittest.TestCase):
             pm.Normal('y', mu=get_output(out),
                       sd=self.sd,
                       observed=self.y)
-        elbo, _, upd_rng, vp = sample_elbo(model, samples=1)
-        upd_adam = updates.adagrad(-elbo, vp.params)
+        elbos, upd_rng, vp = sample_elbo(model, samples=1)
+        upd_adam = updates.adagrad(-elbos.mean(), vp.params)
         upd_rng.update(upd_adam)
-        step = theano.function([], elbo, updates=upd_rng)
+        step = theano.function([], elbos.mean(), updates=upd_rng)
         for i in range(1000):
             step()
         self.assertRaises(ValueError, get_output, out, deterministic=True)

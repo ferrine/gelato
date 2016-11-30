@@ -27,8 +27,8 @@ def sample_elbo(model, population=None, samples=1, pi=1, vp=None):
 
     Returns
     -------
-    (E_q[elbo], V_q[elbo], updates, VariationalParams)
-        mean, variance of elbo, updates for random streams, shared dicts
+    (elbos, updates, VariationalParams)
+        sampled elbos, updates for random streams, shared dicts
 
     Notes
     -----
@@ -66,4 +66,4 @@ def sample_elbo(model, population=None, samples=1, pi=1, vp=None):
     elbos, updates = theano.scan(fn=lambda: _elbo_,
                                  outputs_info=None,
                                  n_steps=samples)
-    return tt.mean(elbos), tt.var(elbos), updates, vp
+    return elbos, updates, vp
