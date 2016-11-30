@@ -9,7 +9,8 @@ from ..spec import DistSpec, get_default_spec
 __all__ = [
     'LayerModelMeta',
     'Layer',
-    'MergeLayer'
+    'MergeLayer',
+    'bayes'
 ]
 
 
