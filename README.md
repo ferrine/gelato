@@ -34,6 +34,7 @@ import lasagne.nonlinearities as nonlinearities
 from gelato.layers import DenseLayer, InputLayer
 from gelato.variational.elbo import sample_elbo
 from gelato.layers.helper import get_output
+from gelato.spec import NormalSpec, LognormalSpec
 
 def generate_data(intercept, slope, sd=.2, size=700):
     x = np.linspace(-10, 10, size)
@@ -50,7 +51,8 @@ input_var = theano.shared(x)
 
 with pm.Model() as model:
     inp = InputLayer(x.shape, input_var=input_var)
-    out = DenseLayer(inp, 1, nonlinearity=nonlinearities.identity)
+    hierarchical prior on W
+    out = DenseLayer(inp, 1, W=W=NormalSpec(sd=LognormalSpec()), nonlinearity=nonlinearities.identity)
     pm.Normal('y', mu=get_output(out),
               sd=sd,
               observed=y)

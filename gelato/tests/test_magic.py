@@ -8,6 +8,7 @@ from gelato.layers import DenseLayer, InputLayer
 from gelato.variational.elbo import sample_elbo
 from gelato.layers.helper import get_output
 from .datasets import generate_data
+from gelato.spec import NormalSpec, LognormalSpec
 
 
 class TestWorkflow(unittest.TestCase):
@@ -23,7 +24,7 @@ class TestWorkflow(unittest.TestCase):
         input_var = theano.shared(self.x)
         with pm.Model() as model:
             inp = InputLayer(self.x.shape, input_var=input_var)
-            out = DenseLayer(inp, 1, nonlinearity=to.identity)
+            out = DenseLayer(inp, 1, W=NormalSpec(sd=LognormalSpec()), nonlinearity=to.identity)
             pm.Normal('y', mu=get_output(out),
                       sd=self.sd,
                       observed=self.y)
