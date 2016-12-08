@@ -1,5 +1,6 @@
+import numpy as np
 import pymc3 as pm
-import pymc3.distributions.distribution
+import pymc3.distributions.distribution as dist
 from pymc3.distributions.continuous import get_tau_sd
 import functools
 
@@ -47,9 +48,15 @@ class DistSpec(object):
     """
 
     def __init__(self, distcls, *args, **kwargs):
-        if not issubclass(
-                distcls,
-                pymc3.distributions.distribution.Distribution):
+        try:
+            valid_cls = issubclass(distcls, dist.Distribution)
+        except TypeError:
+            valid_cls = False
+        try:
+            valid_inst = isinstance(distcls, pm.Bound)
+        except ValueError:
+            valid_inst = False
+        if not (valid_cls or valid_inst):
             raise ValueError('We can deal with pymc3 '
                              'distributions only, got {!r} instead'
                              .format(distcls))
@@ -107,7 +114,6 @@ class DistSpec(object):
                                args=self.args,
                                kwargs=self.kwargs)
 
-
 _default_spec = DistSpec(pm.Normal, mu=0, sd=10)
 
 
@@ -145,8 +151,8 @@ class NormalSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0, sd=1, tau=None):
-        _, sd = get_tau_sd(tau, sd)
+    def __init__(self, mu=0, sd=1):
+        sd = 1
         super(NormalSpec, self).__init__(mu=mu, sd=sd)
 
 
@@ -157,8 +163,7 @@ class BetaSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, alpha=1, beta=1, mu=None, sd=None):
-        alpha, beta = self.spec.get_alpha_beta(None, alpha, beta, mu, sd)
+    def __init__(self, alpha=1, beta=1):
         super(BetaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
@@ -191,8 +196,7 @@ class StudentTSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, nu, mu=0, sd=1, lam=None):
-        _, sd = get_tau_sd(tau=lam, sd=sd)
+    def __init__(self, nu, mu=0, sd=1):
         super(StudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
 
 
@@ -214,8 +218,8 @@ class HalfCauchySpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, alpha=0, beta=1):
-        super(HalfCauchySpec, self).__init__(alpha=alpha, beta=beta)
+    def __init__(self, beta):
+        super(HalfCauchySpec, self).__init__(beta=beta)
 
 
 class GammaSpec(PartialSpec):
@@ -225,8 +229,7 @@ class GammaSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, alpha=None, beta=None, mu=None, sd=None):
-        alpha, beta = self.spec.get_alpha_beta(None, alpha, beta, mu, sd)
+    def __init__(self, alpha=None, beta=None):
         super(GammaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
@@ -250,9 +253,9 @@ class HalfStudentTSpec(PartialSpec):
     )
     spec = pm.HalfStudentT
 
-    def __init__(self, nu, mu=0, sd=1, lam=None):
-        _, sd = get_tau_sd(tau=lam, sd=sd)
-        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
+    def __init__(self, nu, mu=0, sd=1):
+        raise NotImplementedError('Works improperly due to bug in pymc3')
+        # super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
 
 
 class LognormalSpec(PartialSpec):
@@ -262,8 +265,7 @@ class LognormalSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0, sd=1, tau=None):
-        _, sd = get_tau_sd(tau, sd)
+    def __init__(self, mu=0, sd=1):
         super(LognormalSpec, self).__init__(mu=mu, sd=sd)
 
 
@@ -285,8 +287,7 @@ class HalfNormalSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, sd=1, tau=None):
-        _, sd = get_tau_sd(tau, sd)
+    def __init__(self, sd=1):
         super(HalfNormalSpec, self).__init__(sd=sd)
 
 
@@ -297,9 +298,8 @@ class WaldSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=None, lam=None, phi=None, alpha=0.):
-        mu, _, _ = self.spec.get_mu_lam_phi(None, mu, lam, phi)
-        super(WaldSpec, self).__init__(mu=mu, alpha=alpha)
+    def __init__(self, mu=None, lam=None, alpha=0.):
+        super(WaldSpec, self).__init__(mu=mu, lam=lam, alpha=alpha)
 
 
 class ParetoSpec(PartialSpec):
@@ -331,8 +331,8 @@ class ExGaussianSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu, sigma, nu):
-        super(ExGaussianSpec, self).__init__(mu=mu, sigma=sigma, nu=nu)
+    def __init__(self, mu=0, sd=1, nu=None):
+        super(ExGaussianSpec, self).__init__(mu=mu, sigma=sd, nu=nu)
 
 
 class VonMisesSpec(PartialSpec):
@@ -353,8 +353,7 @@ class SkewNormalSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0.0, sd=None, tau=None, alpha=1):
-        _, sd = get_tau_sd(tau, sd)
+    def __init__(self, mu=0.0, sd=None, alpha=1):
         super(SkewNormalSpec, self).__init__(mu=mu, sd=sd, alpha=alpha)
 
 
@@ -365,6 +364,13 @@ class NormalMixtureSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, w, mu, sd, tau=None):
+    def __init__(self, w, mu, sd=None, tau=None):
+        w = np.asarray(w)
+        mu = np.asarray(mu)
+        if sd is not None:
+            sd = np.asarray(sd)
+        if tau is not None:
+            tau = np.asarray(tau)
         _, sd = get_tau_sd(tau, sd)
-        super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)
+        raise NotImplementedError('Works improperly due to bug in pymc3')
+        # super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)
