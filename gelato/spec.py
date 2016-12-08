@@ -1,5 +1,6 @@
 import pymc3 as pm
 import pymc3.distributions.distribution
+from pymc3.distributions.continuous import get_tau_sd
 import functools
 
 __all__ = [
@@ -127,83 +128,117 @@ class PartialSpec(DistSpec):
 
 
 class UniformSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Uniform.__name__,
-        doc=pm.Uniform.__doc__
-    )
     spec = pm.Uniform
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, lower=0, upper=1):
+        super(UniformSpec, self).__init__(lower=lower, upper=upper)
 
 
 class NormalSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Normal.__name__,
-        doc=pm.Normal.__doc__
-    )
     spec = pm.Normal
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu=0, sd=1, tau=None):
+        _, sd = get_tau_sd(tau, sd)
+        super(NormalSpec, self).__init__(mu=mu, sd=sd)
 
 
 class BetaSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Beta.__name__,
-        doc=pm.Beta.__doc__
-    )
     spec = pm.Beta
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha=1, beta=1, mu=None, sd=None):
+        alpha, beta = self.spec.get_alpha_beta(None, alpha, beta, mu, sd)
+        super(BetaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
 class ExponentialSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Exponential.__name__,
-        doc=pm.Exponential.__doc__
-    )
     spec = pm.Exponential
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, lam=1):
+        super(ExponentialSpec, self).__init__(lam=lam)
 
 
 class LaplaceSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Laplace.__name__,
-        doc=pm.Laplace.__doc__
-    )
     spec = pm.Laplace
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu=0, b=1):
+        super(LaplaceSpec, self).__init__(mu=mu, b=b)
 
 
 class StudentTSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.StudentT.__name__,
-        doc=pm.StudentT.__doc__
-    )
     spec = pm.StudentT
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, nu, mu=0, sd=1, lam=None):
+        _, sd = get_tau_sd(tau=lam, sd=sd)
+        super(StudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
 
 
 class CauchySpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Cauchy.__name__,
-        doc=pm.Cauchy.__doc__
-    )
     spec = pm.Cauchy
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha=0, beta=1):
+        super(CauchySpec, self).__init__(alpha=alpha, beta=beta)
 
 
 class HalfCauchySpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.HalfCauchy.__name__,
-        doc=pm.HalfCauchy.__doc__
-    )
     spec = pm.HalfCauchy
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha=0, beta=1):
+        super(HalfCauchySpec, self).__init__(alpha=alpha, beta=beta)
 
 
 class GammaSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Gamma.__name__,
-        doc=pm.Gamma.__doc__
-    )
     spec = pm.Gamma
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha=None, beta=None, mu=None, sd=None):
+        alpha, beta = self.spec.get_alpha_beta(None, alpha, beta, mu, sd)
+        super(GammaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
 class WeibullSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Weibull.__name__,
-        doc=pm.Weibull.__doc__
-    )
     spec = pm.Weibull
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha, beta):
+        super(WeibullSpec, self).__init__(alpha=alpha, beta=beta)
 
 
 class HalfStudentTSpec(PartialSpec):
@@ -215,82 +250,121 @@ class HalfStudentTSpec(PartialSpec):
     )
     spec = pm.HalfStudentT
 
+    def __init__(self, nu, mu=0, sd=1, lam=None):
+        _, sd = get_tau_sd(tau=lam, sd=sd)
+        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
+
 
 class LognormalSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Lognormal.__name__,
-        doc=pm.Lognormal.__doc__
-    )
     spec = pm.Lognormal
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu=0, sd=1, tau=None):
+        _, sd = get_tau_sd(tau, sd)
+        super(LognormalSpec, self).__init__(mu=mu, sd=sd)
 
 
 class ChiSquaredSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.ChiSquared.__name__,
-        doc=pm.ChiSquared.__doc__
-    )
     spec = pm.ChiSquared
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, nu):
+        super(ChiSquaredSpec, self).__init__(nu=nu)
 
 
 class HalfNormalSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.HalfNormal.__name__,
-        doc=pm.HalfNormal.__doc__
-    )
     spec = pm.HalfNormal
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, sd=1, tau=None):
+        _, sd = get_tau_sd(tau, sd)
+        super(HalfNormalSpec, self).__init__(sd=sd)
 
 
 class WaldSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Wald.__name__,
-        doc=pm.Wald.__doc__
-    )
     spec = pm.Wald
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu=None, lam=None, phi=None, alpha=0.):
+        mu, _, _ = self.spec.get_mu_lam_phi(None, mu, lam, phi)
+        super(WaldSpec, self).__init__(mu=mu, alpha=alpha)
 
 
 class ParetoSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.Pareto.__name__,
-        doc=pm.Pareto.__doc__
-    )
     spec = pm.Pareto
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha, m):
+        super(ParetoSpec, self).__init__(alpha=alpha, m=m)
 
 
 class InverseGammaSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.InverseGamma.__name__,
-        doc=pm.InverseGamma.__doc__
-    )
     spec = pm.InverseGamma
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, alpha, beta=1):
+        super(InverseGammaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
 class ExGaussianSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.ExGaussian.__name__,
-        doc=pm.ExGaussian.__doc__
-    )
     spec = pm.ExGaussian
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu, sigma, nu):
+        super(ExGaussianSpec, self).__init__(mu=mu, sigma=sigma, nu=nu)
 
 
 class VonMisesSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.VonMises.__name__,
-        doc=pm.VonMises.__doc__
-    )
     spec = pm.VonMises
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu=0.0, kappa=None):
+        super(VonMisesSpec, self).__init__(mu=mu, kappa=kappa)
 
 
 class SkewNormalSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.SkewNormal.__name__,
-        doc=pm.SkewNormal.__doc__
-    )
     spec = pm.SkewNormal
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, mu=0.0, sd=None, tau=None, alpha=1):
+        _, sd = get_tau_sd(tau, sd)
+        super(SkewNormalSpec, self).__init__(mu=mu, sd=sd, alpha=alpha)
 
 
 class NormalMixtureSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.NormalMixture.__name__,
-        doc=pm.NormalMixture.__doc__
-    )
     spec = pm.NormalMixture
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self, w, mu, sd, tau=None):
+        _, sd = get_tau_sd(tau, sd)
+        super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)

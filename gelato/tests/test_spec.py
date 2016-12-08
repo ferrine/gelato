@@ -52,9 +52,14 @@ class TestSpecs(unittest.TestCase):
                 s not in self.dont_test)
         ]
 
+        self.skipped = [
+            getattr(spec, s)
+            for s in __all__
+            if s in self.dont_test
+        ]
+
     def test_all(self):
         for spec in self.specs:
-            print('testing {!r}'.format(spec))
             with Model():
                 self.assertEqual(
                     spec()((1, 1)).tag.test_value.shape,
@@ -65,5 +70,8 @@ class TestSpecs(unittest.TestCase):
                     (10, 1)
                 )
             print('{!r} -- ok'.format(spec))
+        for spec in self.skipped:
+            print('{!r} -- skip'.format(spec))
+
 if __name__ == '__main__':
     unittest.main()
