@@ -35,6 +35,8 @@ from gelato.layers import DenseLayer, InputLayer
 from gelato.variational.elbo import sample_elbo
 from gelato.layers.helper import get_output
 from gelato.spec import NormalSpec, LognormalSpec
+from gelato.random import get_rng()
+
 
 def generate_data(intercept, slope, sd=.2, size=700):
     x = np.linspace(-10, 10, size)
@@ -81,6 +83,10 @@ stochastic_preds = get_output(out, vp=vp)
 deterministic_preds = get_output(out, vp=vp, deterministic=True)
 # if you don't pass `vp` to `get_output` you will get output without replacements in graph
 ```
+
+Life Hack
+---------
+Any `spec` class can be used standalone so feel free to use it everywhere (e.g. in [keras](https://github.com/fchollet/keras))
 
 References
 ----------
