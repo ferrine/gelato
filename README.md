@@ -35,7 +35,7 @@ from gelato.layers import DenseLayer, InputLayer
 from gelato.variational.elbo import sample_elbo
 from gelato.layers.helper import get_output
 from gelato.spec import NormalSpec, LognormalSpec
-from gelato.random import get_rng()
+from gelato.random import get_rng
 
 
 def generate_data(intercept, slope, sd=.2, size=700):
