@@ -1,5 +1,5 @@
 # Gelato
-## Bayesian desert for Lasagne
+## Bayesian dessert for Lasagne
 
 ![](img/gelato.jpg)
 
