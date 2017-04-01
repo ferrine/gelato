@@ -1,5 +1,6 @@
 import numpy as np
 import pymc3 as pm
+import theano
 import pymc3.distributions.distribution as dist
 from pymc3.distributions.continuous import get_tau_sd
 import functools
@@ -74,10 +75,11 @@ class DistSpec(object):
         val = model.Var(
                 name, self.distcls.dist(
                     *called_args,
-                    **called_kwargs
+                    **called_kwargs,
+                    dtype=theano.config.floatX
                 ),
             )
-        val.tag.test_value = val.random().reshape(shape)
+        val.tag.test_value = val.random().reshape(shape).astype(val.dtype)
         return val
 
     def with_name(self, name):
