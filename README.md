@@ -1,4 +1,5 @@
 # Gelato
+![](https://travis-ci.org/ferrine/gelato.svg?branch=master)
 ## Bayesian dessert for Lasagne
 
 ![](img/gelato.jpg)
