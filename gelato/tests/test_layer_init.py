@@ -1,6 +1,5 @@
-import unittest
+import pytest
 from pymc3.model import Model
-
 from gelato.layers.base import Layer, MergeLayer
 
 
@@ -16,22 +15,21 @@ class BMLayer(MergeLayer):
         self.W = self.add_param(None, (10, 10))
 
 
-class TestBasicLayers(unittest.TestCase):
+class TestBasicLayers(object):
     def test_simple_init_layer(self):
         with Model():
             l = BLayer((10, 10))
-            self.assertIsInstance(l.name, str)
+            assert isinstance(l.name, str)
             l = BLayer((10, 10), 'l2')
-            self.assertEqual(len(l.vars), 1)
-            self.assertIsInstance(l.name, str)
+            assert (len(l.vars) == 1)
+            assert isinstance(l.name, str)
             l = BMLayer([(10, 10)], name='merge')
-            self.assertIsInstance(l.name, str)
-            self.assertEqual(len(l.vars), 1)
+            assert isinstance(l.name, str)
+            assert (len(l.vars) == 1)
             l = BMLayer([(10, 10)])
-            self.assertIsInstance(l.name, str)
+            assert isinstance(l.name, str)
 
-        self.assertRaises(TypeError, BMLayer, (10, 10))
-        self.assertRaises(TypeError, BLayer, (10, 10))
+        with pytest.raises(TypeError):
+            BMLayer((10, 10))
+            BLayer((10, 10))
 
-if __name__ == '__main__':
-    unittest.main()

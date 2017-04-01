@@ -256,8 +256,8 @@ class HalfStudentTSpec(PartialSpec):
     spec = pm.HalfStudentT
 
     def __init__(self, nu, mu=0, sd=1):
-        raise NotImplementedError('Works improperly due to bug in pymc3')
-        # super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
+        #raise NotImplementedError('Sorry, this has problems with inner implementation')
+        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
 
 
 class LognormalSpec(PartialSpec):
@@ -374,5 +374,4 @@ class NormalMixtureSpec(PartialSpec):
         if tau is not None:
             tau = np.asarray(tau)
         _, sd = get_tau_sd(tau, sd)
-        raise NotImplementedError('Works improperly due to bug in pymc3')
-        # super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)
+        super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)

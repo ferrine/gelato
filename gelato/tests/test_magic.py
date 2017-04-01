@@ -1,4 +1,4 @@
-import unittest
+import pytest
 import theano
 import pymc3 as pm
 import numpy as np
@@ -11,14 +11,15 @@ from .datasets import generate_data
 from gelato.spec import NormalSpec, LognormalSpec
 
 
-class TestWorkflow(unittest.TestCase):
-    def setUp(self):
-        self.intercept = 1
-        self.slope = 3
-        self.sd = .1
-        self.x, self.y = generate_data(self.intercept, self.slope, sd=self.sd)
-        self.x = np.matrix(self.x).T
-        self.y = np.matrix(self.y).T
+class TestWorkflow(object):
+    @classmethod
+    def setup_class(cls):
+        cls.intercept = 1
+        cls.slope = 3
+        cls.sd = .1
+        cls.x, cls.y = generate_data(cls.intercept, cls.slope, sd=cls.sd)
+        cls.x = np.matrix(cls.x).T
+        cls.y = np.matrix(cls.y).T
 
     def test_workflow(self):
         input_var = theano.shared(self.x)
@@ -34,9 +35,8 @@ class TestWorkflow(unittest.TestCase):
         step = theano.function([], elbos.mean(), updates=upd_rng)
         for i in range(1000):
             step()
-        self.assertRaises(ValueError, get_output, out, deterministic=True)
+        with pytest.raises(ValueError):
+            get_output(out, deterministic=True)
         preds = get_output(out, vp=vp, deterministic=True)
         np.testing.assert_allclose(preds.eval(), self.y, rtol=0, atol=1)
 
-if __name__ == '__main__':
-    unittest.main()
