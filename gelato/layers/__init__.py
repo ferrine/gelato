@@ -10,3 +10,4 @@ from .shape import *
 from .embedding import *
 from .pool import *
 from .special import *
+from .stats import *
