@@ -66,7 +66,7 @@ class LayerModelMeta(pm.model.InitContextMeta):
 
         def add_param(self, spec, shape, name=None, **tags):
             if not isinstance(spec, DistSpec):
-                spec = getattr(self, 'default_spec', get_default_spec())
+                spec = getattr(self, 'default_spec', get_default_spec(spec))
             if name is not None:
                 spec = spec.with_name(name)
             return lasagne.layers.base.Layer.add_param(

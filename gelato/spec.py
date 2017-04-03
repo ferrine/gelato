@@ -1,11 +1,13 @@
+import copy
 import numpy as np
 import pymc3 as pm
 import theano
+from lasagne import init
 import pymc3.distributions.distribution as dist
 from pymc3.distributions.continuous import get_tau_sd
 import functools
-
 __all__ = [
+    'init'
     'get_default_spec',
     'set_default_spec',
     'DistSpec',
@@ -61,6 +63,7 @@ class DistSpec(object):
             raise ValueError('We can deal with pymc3 '
                              'distributions only, got {!r} instead'
                              .format(distcls))
+        self.testval = kwargs.pop('testval', None)
         self.args = args
         self.kwargs = kwargs
         self.distcls = distcls
@@ -79,7 +82,10 @@ class DistSpec(object):
                     dtype=theano.config.floatX
                 ),
             )
-        val.tag.test_value = val.random().reshape(shape).astype(val.dtype)
+        if self.testval is None:
+            val.tag.test_value = get_default_testval()(shape).astype(val.dtype)
+        else:
+            val.tag.test_value = self.testval(shape).astype(val.dtype)
         return val
 
     def with_name(self, name):
@@ -117,15 +123,31 @@ class DistSpec(object):
                                kwargs=self.kwargs)
 
 _default_spec = DistSpec(pm.Normal, mu=0, sd=10)
+_default_testval = init.GlorotUniform()
 
 
-def get_default_spec():
-    return _default_spec
+def get_default_spec(testval=None):
+    # to avoid init collision
+    cp = copy.deepcopy(_default_spec)
+    if testval is None:
+        cp.testval = get_default_testval()
+    else:
+        cp.testval = testval
+    return cp
+
+
+def get_default_testval():
+    return _default_testval
 
 
 def set_default_spec(spec):
     global _default_spec
     _default_spec = spec
+
+
+def set_default_testval(testval):
+    global _default_testval
+    _default_testval = testval
 
 
 class PartialSpec(DistSpec):
