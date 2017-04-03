@@ -2,7 +2,6 @@ import six
 import functools
 import inspect
 import pymc3 as pm
-import pymc3.model
 import lasagne.layers.base
 from ..spec import DistSpec, get_default_spec
 
@@ -14,7 +13,7 @@ __all__ = [
 ]
 
 
-class LayerModelMeta(pymc3.model.InitContextMeta):
+class LayerModelMeta(pm.model.InitContextMeta):
     """Magic comes here
     """
     def __new__(mcs, what, bases, dic):
@@ -25,6 +24,7 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
         return newcls
 
     def __init__(cls, what, bases, dic):
+        from gelato.layers.helper import find_parent
         super(LayerModelMeta, cls).__init__(what, bases, dic)
         # make flexible property for new class
 
@@ -56,10 +56,11 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
         def wrap_new(__new__):
             @functools.wraps(__new__)
             def wrapped(_cls_, *args, **kwargs):
+                parent = kwargs.get('model', None)
+                if parent is None:
+                    parent = find_parent(args[0])
+                kwargs['model'] = parent
                 instance = __new__(_cls_, *args, **kwargs)
-                if instance.isroot:
-                    raise TypeError('Unable to init as root model, '
-                                    'need to be inside pymc3.Model context')
                 return instance
             return classmethod(wrapped)
 
