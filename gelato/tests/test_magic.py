@@ -23,6 +23,8 @@ class TestWorkflow(object):
         input_var = theano.shared(self.x)
         inp = InputLayer(self.x.shape, input_var=input_var)
         out = DenseLayer(inp, 1, W=NormalSpec(sd=LognormalSpec()), nonlinearity=to.identity)
+        out = DenseLayer(out, 1, W=NormalSpec(sd=LognormalSpec()), nonlinearity=to.identity)
+        assert out.root is inp
         with out:
             pm.Normal('y', mu=get_output(out),
                       sd=self.sd,

@@ -16,12 +16,6 @@ __all__ = [
 class LayerModelMeta(pm.model.InitContextMeta):
     """Magic comes here
     """
-    def __new__(mcs, what, bases, dic):
-        # add model to bases to get all features from pymc3
-        bases = tuple(list(bases) + [pm.Model])
-        # create new class
-        newcls = super(LayerModelMeta, mcs).__new__(mcs, what, bases, dic)
-        return newcls
 
     def __init__(cls, what, bases, dic):
         from gelato.layers.helper import find_parent
@@ -58,7 +52,10 @@ class LayerModelMeta(pm.model.InitContextMeta):
             def wrapped(_cls_, *args, **kwargs):
                 parent = kwargs.get('model', None)
                 if parent is None:
-                    parent = find_parent(args[0])
+                    incoming = kwargs.get('incoming',
+                                          kwargs.get('incomings',
+                                                     args[1]))
+                    parent = find_parent(incoming)
                 kwargs['model'] = parent
                 instance = __new__(_cls_, *args, **kwargs)
                 return instance
@@ -92,6 +89,13 @@ class LayerModelMeta(pm.model.InitContextMeta):
     def __repr__(self):
         return '{}.{}'.format(self.__module__, self.__name__)
 
+    @classmethod
+    def __subclasshook__(cls, C):
+        if lasagne.layers.Layer in C.__mro__ or pm.Model in C.__mro__:
+            return True
+        else:
+            return False
+
 
 def bayes(layercls):
     try:
@@ -104,9 +108,8 @@ def bayes(layercls):
             raise TypeError('{} is already bayesian'
                             .format(layercls))
         else:
-            class BayesianAnalog(
-                    six.with_metaclass(LayerModelMeta, layercls)
-                    ):
+            @six.add_metaclass(LayerModelMeta)
+            class BayesianAnalog(layercls, pm.Model):
                 pass
             frm = inspect.stack()[1]
             mod = inspect.getmodule(frm[0])
