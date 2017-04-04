@@ -22,7 +22,6 @@ __all__ = [
     'HalfCauchySpec',
     'GammaSpec',
     'WeibullSpec',
-    'HalfStudentTSpec',
     'LognormalSpec',
     'ChiSquaredSpec',
     'HalfNormalSpec',
@@ -32,7 +31,8 @@ __all__ = [
     'ExGaussianSpec',
     'VonMisesSpec',
     'SkewNormalSpec',
-    'NormalMixtureSpec'
+    # 'HalfStudentTSpec',
+    # 'NormalMixtureSpec'
 ]
 
 
@@ -176,7 +176,6 @@ class NormalSpec(PartialSpec):
     )
 
     def __init__(self, mu=0, sd=1):
-        sd = 1
         super(NormalSpec, self).__init__(mu=mu, sd=sd)
 
 
@@ -266,20 +265,6 @@ class WeibullSpec(PartialSpec):
 
     def __init__(self, alpha, beta):
         super(WeibullSpec, self).__init__(alpha=alpha, beta=beta)
-
-
-class HalfStudentTSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.HalfStudentT.distribution.__name__,
-        doc="""Bounded StudentT with support on [0, +inf]\n{doc}""".format(
-            doc=pm.StudentT.__doc__
-        )
-    )
-    spec = pm.HalfStudentT
-
-    def __init__(self, nu, mu=0, sd=1):
-        #raise NotImplementedError('Sorry, this has problems with inner implementation')
-        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
 
 
 class LognormalSpec(PartialSpec):
@@ -380,7 +365,21 @@ class SkewNormalSpec(PartialSpec):
     def __init__(self, mu=0.0, sd=None, alpha=1):
         super(SkewNormalSpec, self).__init__(mu=mu, sd=sd, alpha=alpha)
 
+'''
+class HalfStudentTSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.HalfStudentT.distribution.__name__,
+        doc="""Bounded StudentT with support on [0, +inf]\n{doc}""".format(
+            doc=pm.StudentT.__doc__
+        )
+    )
+    spec = pm.HalfStudentT
 
+    def __init__(self, nu, mu=0, sd=1):
+        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
+'''
+
+'''
 class NormalMixtureSpec(PartialSpec):
     spec = pm.NormalMixture
     __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
@@ -397,3 +396,4 @@ class NormalMixtureSpec(PartialSpec):
             tau = np.asarray(tau)
         _, sd = get_tau_sd(tau, sd)
         super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)
+'''

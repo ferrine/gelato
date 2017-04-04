@@ -106,7 +106,7 @@ def setup_specs_kwargs():
     specs = [
         getattr(spec, s)
         for s in __all__
-        if s in _for_test and s not in _skip
+        if s in set(_for_test.keys()) - set(_skip)
     ]
     specs_kwargs = []
     for spec in specs:
