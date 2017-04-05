@@ -127,8 +127,8 @@ class DistSpec(BaseSpec, _spec_py_operators):
         val = model.Var(
                 name, self.distcls.dist(
                     *called_args,
-                    **called_kwargs,
-                    dtype=theano.config.floatX
+                    dtype=theano.config.floatX,
+                    **called_kwargs
                 ),
             )
         if self.testval is None:
