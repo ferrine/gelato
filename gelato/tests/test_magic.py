@@ -21,8 +21,7 @@ class TestWorkflow(object):
         cls.y = np.matrix(cls.y).T
 
     def test_workflow(self):
-        input_var = theano.shared(self.x)
-        inp = InputLayer(self.x.shape, input_var=input_var)
+        inp = InputLayer(self.x.shape)
         out = DenseLayer(inp, 1, W=NormalSpec(sd=LognormalSpec()), nonlinearity=to.identity)
         out = DenseLayer(out, 1, W=NormalSpec(sd=LognormalSpec()), nonlinearity=to.identity)
         assert out.root is inp
