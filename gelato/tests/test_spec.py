@@ -1,8 +1,7 @@
 import pytest
 import numpy as np
-from pymc3 import Normal, Lognormal, Model
-
-from gelato.specs.base import DistSpec
+from pymc3 import Normal, Lognormal, Model, fit
+import theano.tensor as tt
 from gelato.specs import *
 
 
@@ -144,66 +143,18 @@ def pseudo_random(shape):
     np.random.seed(sum(shape))
     return np.random.randint(1, 5, size=shape).astype('int32')
 
-binary = [
-    '__add__',
-    '__sub__',
-    '__mul__',
-    '__truediv__',
-    '__floordiv__',
-    '__pow__',
-    '__and__',
-    '__or__',
-    '__xor__',
-    '__lt__',
-    '__gt__',
-    '__ge__',
-    '__le__',
-]
-
-unary = [
-   '__neg__',
-]
-
 
 @pytest.mark.parametrize(
-    'op',
-    unary
+    'expr',
+    [
+        (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec(),
+        as_spec_op(tt.nlinalg.matrix_power)(NormalSpec() * LaplaceSpec(), 2) / 100 - NormalSpec()
+    ]
 )
-def test_unary_op(op):
-    test_op = getattr(np.ndarray, op)
-    eval_op = getattr(DistSpec, op)
-    shape = (3, 3)
-    a_test = pseudo_random(shape)
-    c_test = test_op(a_test)
-    with Model():
-        a = DistSpec(Normal, testval=pseudo_random).astype(dtype='int32')
-        c = eval_op(a)
-        c_val = c(shape).tag.test_value
-    np.testing.assert_allclose(c_test, c_val)
-
-
-@pytest.mark.parametrize(
-    'op',
-    binary
-)
-def test_binary_op(op):
-    test_op = getattr(np.ndarray, op)
-    eval_op = getattr(DistSpec, op)
-    shape = (3, 3)
-    a_test = pseudo_random(shape)
-    b_test = pseudo_random(shape)
-    c_test = test_op(a_test, b_test)
-    with Model():
-        a = DistSpec(Normal, testval=pseudo_random).astype(dtype='int32')
-        b = DistSpec(Normal, testval=pseudo_random).astype(dtype='int32')
-        c = eval_op(a, b)
-        c_val = c(shape).tag.test_value
-    np.testing.assert_allclose(c_test, c_val)
-
-
-def test_expressions():
+def test_expressions(expr):
     with Model() as model:
-        expr = (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec()
         var = expr((10, 10))
+        Normal('obs', observed=var)
         assert var.tag.test_value.shape == (10, 10)
         assert len(model.free_RVs) == 3
+        fit(1)
