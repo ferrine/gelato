@@ -1,3 +1,4 @@
+import six
 import itertools
 import functools
 import inspect
@@ -100,12 +101,17 @@ meths = []
 globs = dict(BaseSpec=BaseSpec)
 for key, mth in _tensor_py_operators.__dict__.items():
     if callable(mth):
-        argspec = inspect.getfullargspec(mth)
+        if six.PY3:
+            argspec = inspect.getfullargspec(mth)
+            keywords = argspec.varkw
+        else:
+            argspec = inspect.getargspec(mth)
+            keywords = argspec.keywords
         signature = inspect.formatargspec(*argspec)
         inner_signature = inspect.formatargspec(
             args=['mth{0}'.format(key)] + argspec.args,
             varargs=argspec.varargs,
-            varkw=argspec.varkw,
+            varkw=keywords,
             defaults=argspec.args[1:],
             formatvalue=lambda value: '=' + str(value)
         )
