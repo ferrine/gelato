@@ -1,15 +1,26 @@
 language: python
+sudo: false
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.theano
+    - $HOME/download # Sufficient to add miniconda.sh to TRAVIS cache.
+    - $HOME/miniconda2 # Add the installation to TRAVIS cache.
+
+
 python:
   - "2.7"
-  - "3.5"
   - "3.6"
 
 before_install:
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
+  - ./.travis/travis_before_install.sh
+  - export PATH=/home/travis/miniconda2/bin:$PATH
 
 install:
-  - "pip install -r requirements.txt pep8 coverage coveralls"
+  - "pip install -r requirements.txt"
+  - "pip install -r requirements-dev.txt"
 
 script:
   - THEANO_FLAGS='gcc.cxxflags="-march=core2"' pytest -v --cov=pymc3
