@@ -10,3 +10,7 @@ def find_parent(layer):
             found = candidate
             break
     return found
+
+
+def find_root(layer):
+    return find_parent(layer).root

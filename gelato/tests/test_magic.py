@@ -4,7 +4,8 @@ import pymc3 as pm
 import numpy as np
 import lasagne.nonlinearities as to
 from gelato.layers import DenseLayer, InputLayer
-from gelato.layers import get_output
+from lasagne import layers as llayers
+from gelato.layers import get_output, find_parent, find_root
 from .datasets import generate_data
 from gelato.spec import NormalSpec, LognormalSpec
 
@@ -30,3 +31,11 @@ class TestWorkflow(object):
                       sd=self.sd,
                       observed=self.y)
 
+    def test_find_parent_and_root(self):
+        inp = InputLayer(self.x.shape)
+        middle = llayers.DenseLayer(inp, 10)
+        middle1 = DenseLayer(middle, 10)
+        middle2 = llayers.DenseLayer(middle1, 4)
+
+        assert find_parent(middle2) is middle1
+        assert find_root(middle2) is inp
