@@ -205,4 +205,5 @@ def test_expressions():
     with Model() as model:
         expr = (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec()
         var = expr((10, 10))
-        assert val.tag.test_value == (10, 10)
+        assert var.tag.test_value.shape == (10, 10)
+        assert len(model.free_RVs) == 3
