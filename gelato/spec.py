@@ -1,10 +1,8 @@
 import copy
-import numpy as np
 import pymc3 as pm
 import theano
 from lasagne import init
 import pymc3.distributions.distribution as dist
-from pymc3.distributions.continuous import get_tau_sd
 import functools
 __all__ = [
     'get_default_spec',
