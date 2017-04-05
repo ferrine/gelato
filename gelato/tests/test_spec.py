@@ -3,6 +3,7 @@ import numpy as np
 from pymc3 import Normal, Lognormal, Model
 
 from gelato.specs.base import DistSpec
+from gelato.specs import *
 
 
 class TestSpec(object):
@@ -198,3 +199,10 @@ def test_binary_op(op):
         c = eval_op(a, b)
         c_val = c(shape).tag.test_value
     np.testing.assert_allclose(c_test, c_val)
+
+
+def test_expressions():
+    with Model() as model:
+        expr = (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec()
+        var = expr((10, 10))
+        assert val.tag.test_value == (10, 10)

@@ -1,3 +1,4 @@
+import itertools
 import functools
 import inspect
 import pymc3 as pm
@@ -8,66 +9,95 @@ from lasagne import init
 from pymc3.distributions import distribution as dist
 from gelato._compile import define
 
+__all__ = [
+    'BaseSpec',
+    'as_spec_op',
+    'get_default_testval',
+    'set_default_testval',
+    'DistSpec'
+]
+
 
 class BaseSpec(init.Initializer):
-    def with_name(self, name):
-        return functools.partial(self, name=name)
+    memo = {}
+    _counter = itertools.count(0)
+    name = None
 
-    @classmethod
-    def _call_args(cls, args, name, shape):
+    def auto(self):
+        if self.name is None:
+            return 'auto_{}'.format(next(type(self)._counter))
+        else:
+            name = self.name
+            self.name = None
+            return name
+
+    def with_name(self, name):
+        self.name = name
+        return self
+
+    def _call_args(self, args, name, shape, memo):
         return [
-            cls._call(arg, '{}.{}'.format(name, i), shape)
+            self._call(arg, '{}.{}'.format(name, i)
+                       if name is not None and not name.startswith('auto')
+                       else self.auto(), shape, memo)
             for i, arg in enumerate(args)
         ]
 
-    @classmethod
-    def _call_kwargs(cls, kwargs, name, shape):
+    def _call_kwargs(self, kwargs, name, shape, memo):
         return {
-            key: cls._call(arg, '{}:{}'.format(name, key), shape)
+            key: self._call(arg, '{}:{}'.format(name, next(self._counter), memo)
+                            if name is not None and not name.startswith('auto')
+                            else self.auto(), shape, memo)
             for key, arg in kwargs.items()
         }
 
     @staticmethod
-    def _call(arg, label, shape):
+    def _call(arg, label, shape, memo):
         if isinstance(arg, BaseSpec):
-            return arg(shape, label)
+            return arg(shape, label, memo)
         elif isinstance(arg, init.Initializer):
             return arg(shape)
         else:
             return arg
 
-    def __call__(self, shape, name=None):
+    def __call__(self, shape, name=None, memo=None):
         raise NotImplementedError
 
 
-class SpecOp(BaseSpec):
+head = """\
+class SpecVar(BaseSpec):
     def __init__(self, op, *args, **kwargs):
         self.op = op
         self.args = args
         self.kwargs = kwargs
 
-    def __call__(self, shape, name=None):
-        if name is not None:
-            name += self.op.__name__
-        args = self._call_args(self.args, name, shape)
-        kwargs = self._call_kwargs(self.kwargs, name, shape)
-        return self.op(*args, **kwargs)
+    def __call__(self, shape, name=None, memo=None):
+        if memo is None:
+            memo = {}
+        if name is None:
+            name = self.auto()
+        if id(self) in memo:
+            return memo[id(self)]
+        args = self._call_args(self.args, name, shape, memo)
+        kwargs = self._call_kwargs(self.kwargs, name, shape, memo)
+        memo[id(self)] = self.op(*args, **kwargs)
+        return memo[id(self)]
 
     def __repr__(self):
-        return self.op.__name__
+        if hasattr(self.op, '__name__'):
+            return 'SpecOp.' + self.op.__name__
+        else:
+            return 'SpecOp.' + type(self.op).__name__
 
     __str__ = __repr__
 
-
-head = """\
-class _spec_py_operators(object):
 """
 mth_template = """\
     def {0}{signature}:
-        return SpecOp{inner_signature}
+        return SpecVar{inner_signature}
 """
 meths = []
-globs = dict(SpecOp=SpecOp)
+globs = dict(BaseSpec=BaseSpec)
 for key, mth in _tensor_py_operators.__dict__.items():
     if callable(mth):
         argspec = inspect.getfullargspec(mth)
@@ -82,10 +112,14 @@ for key, mth in _tensor_py_operators.__dict__.items():
         meths.append(mth_template.format(key, signature=signature, inner_signature=inner_signature))
         globs['mth{0}'.format(key)] = mth
 
-_spec_py_operators = define('_spec_py_operators', head + '\n'.join(meths), globs, 1)
+SpecVar = define('SpecVar', head + '\n'.join(meths), globs, 1)
 
 
-class DistSpec(BaseSpec, _spec_py_operators):
+def as_spec_op(func):
+    return functools.partial(SpecVar, func)
+
+
+class DistSpec(SpecVar):
     """Spec based on pymc3 distributions
 
     Parameters
@@ -117,12 +151,16 @@ class DistSpec(BaseSpec, _spec_py_operators):
         self.kwargs = kwargs
         self.distcls = distcls
 
-    def __call__(self, shape, name=None):
-        model = pm.modelcontext(None)
+    def __call__(self, shape, name=None, memo=None):
+        if memo is None:
+            memo = {}
         if name is None:
-            name = 'w{}'.format(len(model.vars))
-        called_args = self._call_args(self.args, name, shape)
-        called_kwargs = self._call_kwargs(self.kwargs, name, shape)
+            name = self.auto()
+        if id(self) in memo:
+            return memo[id(self)]
+        model = pm.modelcontext(None)
+        called_args = self._call_args(self.args, name, shape, memo)
+        called_kwargs = self._call_kwargs(self.kwargs, name, shape, memo)
         called_kwargs.update(shape=shape)
         val = model.Var(
                 name, self.distcls.dist(
@@ -137,7 +175,8 @@ class DistSpec(BaseSpec, _spec_py_operators):
             val.tag.test_value = val.random(size=shape).astype(val.dtype)
         else:
             val.tag.test_value = self.testval(shape).astype(val.dtype)
-        return val
+        memo[id(self)] = val
+        return memo[id(self)]
 
     def __repr__(self):
         template = '<{cls}: {args!r}; {kwargs!r}>'
