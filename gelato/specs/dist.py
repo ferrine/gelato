@@ -151,7 +151,7 @@ class GammaSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, alpha=None, beta=None):
+    def __init__(self, alpha, beta):
         super(GammaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
@@ -206,7 +206,7 @@ class WaldSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=None, lam=None, alpha=0.):
+    def __init__(self, mu, lam, alpha=0.):
         super(WaldSpec, self).__init__(mu=mu, lam=lam, alpha=alpha)
 
 
@@ -239,7 +239,7 @@ class ExGaussianSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0, sd=1, nu=None):
+    def __init__(self, mu, sd, nu):
         super(ExGaussianSpec, self).__init__(mu=mu, sigma=sd, nu=nu)
 
 
@@ -250,7 +250,7 @@ class VonMisesSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0.0, kappa=None):
+    def __init__(self, mu, kappa):
         super(VonMisesSpec, self).__init__(mu=mu, kappa=kappa)
 
 
@@ -261,7 +261,7 @@ class SkewNormalSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0.0, sd=None, alpha=1):
+    def __init__(self, mu=0.0, sd=1, alpha=1):
         super(SkewNormalSpec, self).__init__(mu=mu, sd=sd, alpha=alpha)
 
 '''
