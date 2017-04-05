@@ -1,15 +1,12 @@
 import copy
+
 import pymc3 as pm
-import theano
-from lasagne import init
-import pymc3.distributions.distribution as dist
-import functools
+
+from gelato.specs.base import DistSpec, get_default_testval
+
 __all__ = [
     'get_default_spec',
     'set_default_spec',
-    'set_default_testval',
-    'get_default_testval',
-    'DistSpec',
     'PartialSpec',
     'UniformSpec',
     'NormalSpec',
@@ -34,95 +31,7 @@ __all__ = [
     # 'NormalMixtureSpec'
 ]
 
-
-class DistSpec(object):
-    """Spec based on pymc3 distributions
-
-    Parameters
-    ----------
-    distcls : pymc3.Distribution
-    args : args for `distcls`
-    kwargs : kwargs for `distcls`
-
-    Usage
-    -----
-    spec = DistSpec(Normal, mu=0, sd=DistSpec(Lognormal, 0, 1))
-    """
-
-    def __init__(self, distcls, *args, **kwargs):
-        try:
-            valid_cls = issubclass(distcls, dist.Distribution)
-        except TypeError:
-            valid_cls = False
-        try:
-            valid_inst = isinstance(distcls, pm.Bound)
-        except ValueError:
-            valid_inst = False
-        if not (valid_cls or valid_inst):
-            raise ValueError('We can deal with pymc3 '
-                             'distributions only, got {!r} instead'
-                             .format(distcls))
-        self.testval = kwargs.pop('testval', None)
-        self.args = args
-        self.kwargs = kwargs
-        self.distcls = distcls
-
-    def __call__(self, shape, name=None):
-        model = pm.modelcontext(None)
-        if name is None:
-            name = 'w{}'.format(len(model.vars))
-        called_args = self._call_args(self.args, name, shape)
-        called_kwargs = self._call_kwargs(self.kwargs, name, shape)
-        called_kwargs.update(shape=shape)
-        val = model.Var(
-                name, self.distcls.dist(
-                    *called_args,
-                    **called_kwargs,
-                    dtype=theano.config.floatX
-                ),
-            )
-        if self.testval is None:
-            val.tag.test_value = get_default_testval()(shape).astype(val.dtype)
-        else:
-            val.tag.test_value = self.testval(shape).astype(val.dtype)
-        return val
-
-    def with_name(self, name):
-        return functools.partial(self, name=name)
-
-    def _call_args(self, args, name, shape):
-        return [
-            self._call(arg, '{}_arg{}'.format(name, i), shape)
-            for i, arg in enumerate(args)
-        ]
-
-    def _call_kwargs(self, kwargs, name, shape):
-        return {
-            key: self._call(arg, '{}_{}'.format(name, key), shape)
-            for key, arg in kwargs.items()
-        }
-
-    @staticmethod
-    def _call(arg, label, shape):
-        if callable(arg):
-            if isinstance(arg, DistSpec):
-                return arg(shape, label)
-            else:
-                raise TypeError(
-                    'Cannot proceed type {} in DistSpec'
-                    .format(type(arg))
-                )
-        else:
-            return arg
-
-    def __repr__(self):
-        template = '<{cls}: {args!r}; {kwargs!r}>'
-        return template.format(cls=self.distcls.__name__,
-                               args=self.args,
-                               kwargs=self.kwargs)
-
 _default_spec = DistSpec(pm.Normal, mu=0, sd=10)
-_default_testval = init.GlorotUniform()
 
 
 def get_default_spec(testval=None):
@@ -135,18 +44,9 @@ def get_default_spec(testval=None):
     return cp
 
 
-def get_default_testval():
-    return _default_testval
-
-
 def set_default_spec(spec):
     global _default_spec
     _default_spec = spec
-
-
-def set_default_testval(testval):
-    global _default_testval
-    _default_testval = testval
 
 
 class PartialSpec(DistSpec):

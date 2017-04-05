@@ -1,6 +1,8 @@
 import pytest
+import numpy as np
 from pymc3 import Normal, Lognormal, Model
-from gelato.spec import DistSpec
+
+from gelato.specs.base import DistSpec
 
 
 class TestSpec(object):
@@ -101,10 +103,10 @@ _skip = [
 
 
 def setup_specs_kwargs():
-    from ..spec import __all__
-    from gelato import spec
+    from gelato.specs.dist import __all__
+    from gelato.specs import dist
     specs = [
-        getattr(spec, s)
+        getattr(dist, s)
         for s in __all__
         if s in set(_for_test.keys()) - set(_skip)
     ]
@@ -135,3 +137,64 @@ def test_spec(spec, kwargs):
             ==
             (10, 1, 10)
         )
+
+
+def pseudo_random(shape):
+    np.random.seed(sum(shape))
+    return np.random.randint(1, 5, size=shape).astype('int32')
+
+binary = [
+    '__add__',
+    '__sub__',
+    '__mul__',
+    '__truediv__',
+    '__floordiv__',
+    '__pow__',
+    '__and__',
+    '__or__',
+    '__xor__',
+    '__lt__',
+    '__gt__',
+    '__ge__',
+    '__le__',
+]
+
+unary = [
+   '__neg__',
+]
+
+
+@pytest.mark.parametrize(
+    'op',
+    unary
+)
+def test_unary_op(op):
+    test_op = getattr(np.ndarray, op)
+    eval_op = getattr(DistSpec, op)
+    shape = (3, 3)
+    a_test = pseudo_random(shape)
+    c_test = test_op(a_test)
+    with Model():
+        a = DistSpec(Normal, testval=pseudo_random).astype(dtype='int32')
+        c = eval_op(a)
+        c_val = c(shape).tag.test_value
+    np.testing.assert_allclose(c_test, c_val)
+
+
+@pytest.mark.parametrize(
+    'op',
+    binary
+)
+def test_binary_op(op):
+    test_op = getattr(np.ndarray, op)
+    eval_op = getattr(DistSpec, op)
+    shape = (3, 3)
+    a_test = pseudo_random(shape)
+    b_test = pseudo_random(shape)
+    c_test = test_op(a_test, b_test)
+    with Model():
+        a = DistSpec(Normal, testval=pseudo_random).astype(dtype='int32')
+        b = DistSpec(Normal, testval=pseudo_random).astype(dtype='int32')
+        c = eval_op(a, b)
+        c_val = c(shape).tag.test_value
+    np.testing.assert_allclose(c_test, c_val)

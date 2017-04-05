@@ -1,9 +1,12 @@
-import six
 import functools
 import inspect
-import pymc3 as pm
+
 import lasagne.layers.base
-from ..spec import DistSpec, get_default_spec
+import pymc3 as pm
+import six
+
+from gelato.specs.dist import get_default_spec
+from gelato.specs.base import DistSpec
 
 __all__ = [
     'LayerModelMeta',

@@ -1,13 +1,12 @@
-import pytest
-import theano
-import pymc3 as pm
-import numpy as np
 import lasagne.nonlinearities as to
-from gelato.layers import DenseLayer, InputLayer
+import numpy as np
+import pymc3 as pm
 from lasagne import layers as llayers
+
+from gelato.layers import DenseLayer, InputLayer
 from gelato.layers import get_output, find_parent, find_root
+from gelato.specs.dist import NormalSpec, LognormalSpec
 from .datasets import generate_data
-from gelato.spec import NormalSpec, LognormalSpec
 
 
 class TestWorkflow(object):
