@@ -19,11 +19,14 @@ before_install:
   - export PATH=/home/travis/miniconda2/bin:$PATH
 
 install:
+  - ./.travis/travis_install.sh
+  - "source activate pyenv"
   - "pip install -r requirements.txt"
   - "pip install -r requirements-dev.txt"
+  - pip install . --no-deps --upgrade
 
 script:
-  - THEANO_FLAGS='gcc.cxxflags="-march=core2"' pytest -v --cov=pymc3
+  - THEANO_FLAGS='gcc.cxxflags="-march=core2"' pytest -v --cov=gelato
 
 after_success:
   - coveralls

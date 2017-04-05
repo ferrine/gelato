@@ -7,8 +7,3 @@ else
     if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda create --yes -q -n pyenv python=2.7 ; fi
     if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then conda create --yes -q -n pyenv python=3.6 ; fi
 fi
-
-source activate pyenv
-if [[ $TRAVIS_PYTHON_VERSION == '2.7' ]]; then conda install --yes -q mkl numpy=1.9.1 scipy=0.14.0 nose=1.3.0 pip flake8=2.3 six=1.9.0 pep8=1.6.2 pyflakes=0.8.1 sphinx mkl-service libgfortran=1; fi
-if [[ $TRAVIS_PYTHON_VERSION == '3.6' ]]; then conda install --yes -q mkl numpy=1.9.1 scipy=0.14.0 nose=1.3.4 pip flake8=2.3 six=1.9.0 pep8=1.6.2 pyflakes=0.8.1 sphinx mkl-service; fi
-source deactivate
