@@ -7,9 +7,10 @@ import pymc3.distributions.distribution as dist
 from pymc3.distributions.continuous import get_tau_sd
 import functools
 __all__ = [
-    'init'
     'get_default_spec',
     'set_default_spec',
+    'set_default_testval',
+    'get_default_testval',
     'DistSpec',
     'PartialSpec',
     'UniformSpec',
