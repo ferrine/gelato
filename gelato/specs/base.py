@@ -1,4 +1,5 @@
 import six
+import copy
 import itertools
 import functools
 import inspect
@@ -7,7 +8,6 @@ from theano import theano
 from theano.tensor.basic import _tensor_py_operators
 
 from lasagne import init
-from pymc3.distributions import distribution as dist
 from gelato._compile import define
 
 __all__ = [
@@ -23,6 +23,8 @@ class BaseSpec(init.Initializer):
     memo = {}
     _counter = itertools.count(0)
     name = None
+    tag = 'default'
+    _shape = -1
 
     def auto(self):
         if self.name is None:
@@ -35,6 +37,22 @@ class BaseSpec(init.Initializer):
     def with_name(self, name):
         self.name = name
         return self
+
+    def with_tag(self, tag):
+        self.tag = tag
+        return self
+
+    def with_shape(self, shape):
+        self._shape = shape
+        return self
+
+    def _get_shape(self, shape):
+        if self._shape != -1:
+            return self._shape, 'default'
+        elif isinstance(shape, dict):
+            return shape[self.tag], self.tag
+        else:
+            return shape, 'default'
 
     def _call_args(self, args, name, shape, memo):
         return [
@@ -57,7 +75,10 @@ class BaseSpec(init.Initializer):
         if isinstance(arg, BaseSpec):
             return arg(shape, label, memo)
         elif isinstance(arg, init.Initializer):
-            return arg(shape)
+            if isinstance(shape, dict):
+                return arg(shape['default'])
+            else:
+                return arg(shape)
         else:
             return arg
 
@@ -65,24 +86,29 @@ class BaseSpec(init.Initializer):
         raise NotImplementedError
 
 
-head = """\
+head = '''\
 class SpecVar(BaseSpec):
+    """
+    Base class that supports delayed tensor operations
+    """
+
     def __init__(self, op, *args, **kwargs):
         self.op = op
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, shape, name=None, memo=None):
+        shape, _tag = self._get_shape(shape)
         if memo is None:
             memo = {}
         if name is None:
             name = self.auto()
-        if id(self) in memo:
-            return memo[id(self)]
+        if id(self) ^ hash(_tag) in memo:
+            return memo[id(self) ^ hash(_tag)]
         args = self._call_args(self.args, name, shape, memo)
         kwargs = self._call_kwargs(self.kwargs, name, shape, memo)
-        memo[id(self)] = self.op(*args, **kwargs)
-        return memo[id(self)]
+        memo[id(self) ^ hash(_tag)] = self.op(*args, **kwargs)
+        return memo[id(self) ^ hash(_tag)]
 
     def __repr__(self):
         if hasattr(self.op, '__name__'):
@@ -92,13 +118,22 @@ class SpecVar(BaseSpec):
 
     __str__ = __repr__
 
-"""
+    def clone(self):
+        return copy.deepcopy(self)
+
+    def __iter__(self):
+        raise NotImplementedError
+'''
+exclude = {
+    '__iter__'
+}
 mth_template = """\
     def {0}{signature}:
+        '''{doc}'''
         return SpecVar{inner_signature}
 """
 meths = []
-globs = dict(BaseSpec=BaseSpec)
+globs = dict(BaseSpec=BaseSpec, copy=copy)
 for key, mth in _tensor_py_operators.__dict__.items():
     if callable(mth):
         if six.PY3:
@@ -115,7 +150,8 @@ for key, mth in _tensor_py_operators.__dict__.items():
             defaults=argspec.args[1:],
             formatvalue=lambda value: '=' + str(value)
         )
-        meths.append(mth_template.format(key, signature=signature, inner_signature=inner_signature))
+        meths.append(mth_template.format(
+            key, signature=signature, inner_signature=inner_signature, doc=mth.__doc__))
         globs['mth{0}'.format(key)] = mth
 
 SpecVar = define('SpecVar', head + '\n'.join(meths), globs, 1)
@@ -128,6 +164,8 @@ def as_spec_op(func):
 class DistSpec(SpecVar):
     """Spec based on pymc3 distributions
 
+    All specs support lazy evaluation, see Usage
+
     Parameters
     ----------
     distcls : pymc3.Distribution
@@ -136,34 +174,31 @@ class DistSpec(SpecVar):
 
     Usage
     -----
-    spec = DistSpec(Normal, mu=0, sd=DistSpec(Lognormal, 0, 1))
-    """
+    >>> spec = DistSpec(Normal, mu=0, sd=DistSpec(Lognormal, 0, 1))
+    >>> spec += (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec()
+    >>> with Model():
+    ...     prior_expr = spec((10, 10), name='silly_prior')
 
+    """
     def __init__(self, distcls, *args, **kwargs):
-        try:
-            valid_cls = issubclass(distcls, dist.Distribution)
-        except TypeError:
-            valid_cls = False
-        try:
-            valid_inst = isinstance(distcls, pm.Bound)
-        except ValueError:
-            valid_inst = False
-        if not (valid_cls or valid_inst):
+        if not isinstance(distcls, type) and issubclass(distcls, pm.Distribution):
             raise ValueError('We can deal with pymc3 '
                              'distributions only, got {!r} instead'
                              .format(distcls))
         self.testval = kwargs.pop('testval', None)
+        self.tag = kwargs.get('tag', 'default')
         self.args = args
         self.kwargs = kwargs
         self.distcls = distcls
 
     def __call__(self, shape, name=None, memo=None):
+        shape, _tag = self._get_shape(shape)
         if memo is None:
             memo = {}
         if name is None:
             name = self.auto()
-        if id(self) in memo:
-            return memo[id(self)]
+        if id(self) ^ hash(_tag) in memo:
+            return memo[id(self) ^ hash(_tag)]
         model = pm.modelcontext(None)
         called_args = self._call_args(self.args, name, shape, memo)
         called_kwargs = self._call_kwargs(self.kwargs, name, shape, memo)
@@ -181,17 +216,21 @@ class DistSpec(SpecVar):
             val.tag.test_value = val.random(size=shape).astype(val.dtype)
         else:
             val.tag.test_value = self.testval(shape).astype(val.dtype)
-        memo[id(self)] = val
-        return memo[id(self)]
+        memo[id(self) ^ hash(_tag)] = val
+        return memo[id(self) ^ hash(_tag)]
 
     def __repr__(self):
-        template = '<{cls}: {args!r}; {kwargs!r}>'
+        if self._shape != -1:
+            sh = '; '+str(self._shape)
+        else:
+            sh = ''
+        template = '<{cls}: {args!r}; {kwargs!r}'+sh+'>'
         return template.format(cls=self.distcls.__name__,
                                args=self.args,
                                kwargs=self.kwargs)
 
 
-_default_testval = init.GlorotUniform()
+_default_testval = init.Normal(std=.1)
 
 
 def set_default_testval(testval):
