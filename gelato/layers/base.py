@@ -54,7 +54,7 @@ class LayerModelMeta(pm.model.InitContextMeta):
             @functools.wraps(__new__)
             def wrapped(_cls_, *args, **kwargs):
                 parent = kwargs.get('model', None)
-                if parent is None:
+                if parent is None and not issubclass(_cls_, lasagne.layers.InputLayer):
                     incoming = kwargs.get('incoming',
                                           kwargs.get('incomings',
                                                      args[1]))
