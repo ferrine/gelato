@@ -3,6 +3,8 @@ from .base import Layer
 
 class PosteriorLayer(Layer):
     def get_output_for(self, incoming, approx=None, deterministic=False, **kwargs):
+        if approx is None:
+            raise ValueError('No approximation specified')
         return approx.apply_replacements(incoming, deterministic=deterministic)
 
 
@@ -12,6 +14,8 @@ class SamplingLayer(Layer):
         self.samples = samples
 
     def get_output_for(self, incoming, approx=None, **kwargs):
+        if approx is None:
+            raise ValueError('No approximation specified')
         return approx.sample_node(incoming, size=self.samples)
 
     def get_output_shape_for(self, input_shape):
