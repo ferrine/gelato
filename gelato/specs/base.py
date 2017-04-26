@@ -250,7 +250,7 @@ class DistSpec(SpecVar):
                                kwargs=self.kwargs)
 
 
-_default_testval = init.Normal(std=.1)
+_default_testval = init.Normal(std=.01)
 
 
 def set_default_testval(testval):
