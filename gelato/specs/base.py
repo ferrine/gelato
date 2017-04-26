@@ -66,8 +66,13 @@ class BaseSpec(init.Initializer):
 
     def _get_shape(self, shape):
         """
-        :param shape: dict 
-        :return: dict 
+        Parameters
+        ----------    
+        shape : dict
+
+        Returns
+        -------
+        dict, str
         """
         if callable(self._shape):
             new_shape, tag = self._shape(shape[self.tag]), self.tag
@@ -76,7 +81,7 @@ class BaseSpec(init.Initializer):
         else:
             new_shape, tag = shape[self.tag], self.tag
         shape = shape.copy()
-        shape.update(default=new_shape)
+        shape['default'] = new_shape
         return shape, tag
 
     def _call_args(self, args, name, shape, memo):
