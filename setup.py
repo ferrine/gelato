@@ -34,7 +34,7 @@ if __name__ == '__main__':
         name='gelato',
         version=VERSION,
         packages=find_packages(),
-        description='Bayesian desert for Lasagne',
+        description='Bayesian dessert for Lasagne',
         long_description=LONG_DESCRIPTION,
         author='Maxim Kochurov',
         author_email='maxim.v.kochurov@gmail.com',

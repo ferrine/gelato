@@ -20,11 +20,10 @@ __all__ = [
 
 
 class BaseSpec(init.Initializer):
-    memo = {}
     _counter = itertools.count(0)
     name = None
     tag = 'default'
-    _shape = -1
+    _shape = None
 
     def auto(self):
         if self.name is None:
@@ -43,16 +42,42 @@ class BaseSpec(init.Initializer):
         return self
 
     def with_shape(self, shape):
-        self._shape = shape
+        if callable(shape):
+            self._shape = shape
+        elif shape is not None:
+            self._shape = shape
+            self.tag = 'custom'
+        else:
+            self._shape = None
+            self.tag = 'default'
         return self
 
+    @staticmethod
+    def _prepare(memo, shape):
+        if memo is None:
+            memo = {}
+            if not isinstance(shape, dict):
+                shape = {'default': shape}
+            elif 'default' not in shape:
+                raise ValueError('default shape not specified,'
+                                 'please provide it with `default`'
+                                 'key in input shape dict')
+        return memo, shape
+
     def _get_shape(self, shape):
-        if self._shape != -1:
-            return self._shape, 'default'
-        elif isinstance(shape, dict):
-            return shape[self.tag], self.tag
+        """
+        :param shape: dict 
+        :return: dict 
+        """
+        if callable(self._shape):
+            new_shape, tag = self._shape(shape[self.tag]), self.tag
+        elif self._shape is not None:
+            new_shape, tag = self._shape, self.tag
         else:
-            return shape, 'default'
+            new_shape, tag = shape[self.tag], self.tag
+        shape = shape.copy()
+        shape.update(default=new_shape)
+        return shape, tag
 
     def _call_args(self, args, name, shape, memo):
         return [
@@ -77,8 +102,6 @@ class BaseSpec(init.Initializer):
         elif isinstance(arg, init.Initializer):
             if isinstance(shape, dict):
                 return arg(shape['default'])
-            else:
-                return arg(shape)
         else:
             return arg
 
@@ -91,24 +114,22 @@ class SpecVar(BaseSpec):
     """
     Base class that supports delayed tensor operations
     """
-
     def __init__(self, op, *args, **kwargs):
         self.op = op
         self.args = args
         self.kwargs = kwargs
 
     def __call__(self, shape, name=None, memo=None):
-        shape, _tag = self._get_shape(shape)
-        if memo is None:
-            memo = {}
+        memo, shape = self._prepare(memo, shape)
+        shape, tag = self._get_shape(shape)
         if name is None:
             name = self.auto()
-        if id(self) ^ hash(_tag) in memo:
-            return memo[id(self) ^ hash(_tag)]
+        if id(self) ^ hash(tag) in memo:
+            return memo[id(self) ^ hash(tag)]
         args = self._call_args(self.args, name, shape, memo)
         kwargs = self._call_kwargs(self.kwargs, name, shape, memo)
-        memo[id(self) ^ hash(_tag)] = self.op(*args, **kwargs)
-        return memo[id(self) ^ hash(_tag)]
+        memo[id(self) ^ hash(tag)] = self.op(*args, **kwargs)
+        return memo[id(self) ^ hash(tag)]
 
     def __repr__(self):
         if hasattr(self.op, '__name__'):
@@ -192,32 +213,31 @@ class DistSpec(SpecVar):
         self.distcls = distcls
 
     def __call__(self, shape, name=None, memo=None):
-        shape, _tag = self._get_shape(shape)
-        if memo is None:
-            memo = {}
+        memo, shape = self._prepare(memo, shape)
         if name is None:
             name = self.auto()
-        if id(self) ^ hash(_tag) in memo:
-            return memo[id(self) ^ hash(_tag)]
+        shape, tag = self._get_shape(shape)
+        if id(self) ^ hash(tag) in memo:
+            return memo[id(self) ^ hash(tag)]
         model = pm.modelcontext(None)
         called_args = self._call_args(self.args, name, shape, memo)
         called_kwargs = self._call_kwargs(self.kwargs, name, shape, memo)
-        called_kwargs.update(shape=shape)
+        called_kwargs.update(shape=shape['default'])
         val = model.Var(
-                name, self.distcls.dist(
-                    *called_args,
-                    dtype=theano.config.floatX,
-                    **called_kwargs
-                ),
-            )
+            name, self.distcls.dist(
+                *called_args,
+                dtype=theano.config.floatX,
+                **called_kwargs
+            ),
+        )
         if self.testval is None:
-            val.tag.test_value = get_default_testval()(shape).astype(val.dtype)
+            val.tag.test_value = get_default_testval()(shape['default']).astype(val.dtype)
         elif isinstance(self.testval, str) and self.testval == 'random':
-            val.tag.test_value = val.random(size=shape).astype(val.dtype)
+            val.tag.test_value = val.random(size=shape['default']).astype(val.dtype)
         else:
-            val.tag.test_value = self.testval(shape).astype(val.dtype)
-        memo[id(self) ^ hash(_tag)] = val
-        return memo[id(self) ^ hash(_tag)]
+            val.tag.test_value = self.testval(shape['default']).astype(val.dtype)
+        memo[id(self) ^ hash(tag)] = val
+        return memo[id(self) ^ hash(tag)]
 
     def __repr__(self):
         if self._shape != -1:

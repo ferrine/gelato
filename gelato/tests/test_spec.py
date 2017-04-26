@@ -144,11 +144,27 @@ def pseudo_random(shape):
     return np.random.randint(1, 5, size=shape).astype('int32')
 
 
+def _case4():
+    ss = NormalSpec().with_shape(lambda s: (s[0], 1)).dot(NormalSpec().with_shape(lambda s: (1, s[1]))) + LaplaceSpec()
+    ss = ss*ss
+    return ss
+
+
+def _case5():
+    lap = LaplaceSpec().with_shape(())
+    ss = NormalSpec().with_shape(lambda s: (s[0], 1)).dot(NormalSpec().with_shape(lambda s: (1, s[1]))) + lap
+    ss = ss*ss
+    return ss
+
+
 @pytest.mark.parametrize(
     'expr',
     [
         (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec(),
-        as_spec_op(tt.nlinalg.matrix_power)(NormalSpec() * LaplaceSpec(), 2) / 100 - NormalSpec()
+        as_spec_op(tt.nlinalg.matrix_power)(NormalSpec() * LaplaceSpec(), 2) / 100 - NormalSpec(),
+        NormalSpec().with_shape(lambda s: (s[0], 1)).dot(NormalSpec().with_shape(lambda s: (1, s[1]))) + LaplaceSpec(),
+        _case4(), _case5()
+
     ]
 )
 def test_expressions(expr):

@@ -29,7 +29,6 @@ I use generic approach for decorating all Lasagne at once. Thus, for using Gelat
 
 ```python
 # TODO
-# if you don't pass `vp` to `get_output` you will get output without replacements in graph
 ```
 
 Life Hack
