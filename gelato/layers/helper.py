@@ -13,4 +13,8 @@ def find_parent(layer):
 
 
 def find_root(layer):
-    return find_parent(layer).root
+    model = find_parent(layer)
+    if model is not None:
+        return model.root
+    else:
+        return None
