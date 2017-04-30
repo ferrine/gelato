@@ -1,5 +1,10 @@
 from .base import Layer
 
+__all__ = [
+    'PosteriorLayer',
+    'SamplingLayer'
+]
+
 
 class PosteriorLayer(Layer):
     def get_output_for(self, incoming, approx=None, deterministic=False, **kwargs):

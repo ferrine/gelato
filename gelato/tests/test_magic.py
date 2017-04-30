@@ -6,7 +6,7 @@ from lasagne import layers as llayers
 from gelato.layers import DenseLayer, InputLayer
 from gelato.layers import get_output, find_parent, find_root
 from gelato.specs.dist import NormalSpec, LognormalSpec
-from .datasets import generate_data
+from .datasets import generate_linear_regression
 
 
 class TestWorkflow(object):
@@ -15,7 +15,7 @@ class TestWorkflow(object):
         cls.intercept = 1
         cls.slope = 3
         cls.sd = .1
-        cls.x, cls.y = generate_data(cls.intercept, cls.slope, sd=cls.sd)
+        cls.x, cls.y = generate_linear_regression(cls.intercept, cls.slope, sd=cls.sd)
         cls.x = np.matrix(cls.x).T
         cls.y = np.matrix(cls.y).T
 
