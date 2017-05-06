@@ -7,6 +7,7 @@ import six
 
 from gelato.specs.dist import get_default_spec
 from gelato.specs.base import DistSpec
+from pymc3.memoize import hashable
 
 __all__ = [
     'LayerModelMeta',
@@ -27,7 +28,7 @@ class LayerModelMeta(pm.model.InitContextMeta):
 
         def fget(self):
             if self._name is None:
-                return '{}_{}'.format(self.__class__.__name__, id(self))
+                return '{}_{}'.format(self.__class__.__name__, self._fingerprint)
             else:
                 return self._name
 
@@ -45,6 +46,7 @@ class LayerModelMeta(pm.model.InitContextMeta):
             @functools.wraps(__init__)
             def wrapped(self, *args, **kwargs):
                 name = kwargs.get('name')
+                self._fingerprint = hashable(self.parent)
                 pm.Model.__init__(self, name)
                 __init__(self, *args, **kwargs)
             return wrapped
