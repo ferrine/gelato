@@ -2,7 +2,6 @@ language: python
 sudo: false
 cache:
   directories:
-    - $HOME/.cache/pip
     - $HOME/.theano
     - $HOME/download # Sufficient to add miniconda.sh to TRAVIS cache.
     - $HOME/miniconda2 # Add the installation to TRAVIS cache.
@@ -23,7 +22,7 @@ install:
   - "source activate pyenv"
   - "pip install -r requirements.txt"
   - "pip install -r requirements-dev.txt"
-  - pip install . --no-deps --upgrade
+  - pip install . --no-deps
 
 script:
   - THEANO_FLAGS='gcc.cxxflags="-march=core2"' pytest -v --cov=gelato
