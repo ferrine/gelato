@@ -20,9 +20,10 @@ before_install:
 install:
   - ./.travis/travis_install.sh
   - "source activate pyenv"
-  - "pip install -r requirements.txt"
+  - "pip install --upgrade pip"
+  - "pip install -r requirements.txt --no-cache-dir"
   - "pip install -r requirements-dev.txt"
-  - pip install . --no-deps
+  - "pip install . --no-deps"
 
 script:
   - THEANO_FLAGS='gcc.cxxflags="-march=core2"' pytest -v --cov=gelato
