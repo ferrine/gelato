@@ -59,8 +59,8 @@ class BaseSpec(init.Initializer):
             if not isinstance(shape, dict):
                 shape = {'default': shape}
             elif 'default' not in shape:
-                raise ValueError('default shape not specified,'
-                                 'please provide it with `default`'
+                raise ValueError('default shape not specified, '
+                                 'please provide it with `default` '
                                  'key in input shape dict')
         return memo, shape
 
