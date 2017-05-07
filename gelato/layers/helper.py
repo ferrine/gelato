@@ -1,17 +1,10 @@
 import pymc3 as pm
 from lasagne.layers.helper import *
-
+from lasagne.layers.helper import __all__ as __helper__all__
 __all__ = [
     "find_parent",
     "find_root",
-    "get_all_layers",
-    "get_output",
-    "get_output_shape",
-    "get_all_params",
-    "count_params",
-    "get_all_param_values",
-    "set_all_param_values"
-]
+] + __helper__all__
 
 
 def find_parent(layer):
