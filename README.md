@@ -11,25 +11,28 @@ Library heavily relies on [Theano](https://github.com/Theano/Theano), [Lasagne](
 Installation
 ------------
 
-```bash
-git clone https://github.com/ferrine/gelato
-cd gelato
-pip install -r requirements.txt
-pip install .
-```
+* from github (assumes bleeding edge pymc3 installed)
+    ```bash
+    # pip install git+git://github.com/pymc-devs/pymc3.git
+    pip install git+https://github.com/ferrine/gelato.git
+    ```
+* from source
+    ```bash
+    git clone https://github.com/ferrine/gelato
+    pip install -r gelato/requirements.txt
+    pip install -e gelato
+    ```
 
 Usage
 -----
 I use generic approach for decorating all Lasagne at once. Thus, for using Gelato you need to replace import statements for layers only. For constructing a network you need to be the in pm.Model context environment.
 
 **Warning**
- - `gelato.layers.helper` module, it is not equivalent to `lasagne.layers.helper`, it declares only `get_output` function.
  - `lasagne.layers.noise`, `lasagne.layers.normalization` are not supported yet
 
-
-```python
-# TODO
-```
+Examples
+--------
+For comprehensive example of using `Gelato` you can reference [this](https://github.com/ferrine/gelato/blob/master/examples/mnist.ipynb) notebook 
 
 Life Hack
 ---------
