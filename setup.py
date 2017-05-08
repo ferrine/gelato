@@ -8,7 +8,7 @@ here = os.path.abspath(os.path.dirname(__file__))
 REQUIREMENTS = [
     # use requirements.txt
     'lasagne',
-    'pymc3'
+#    'pymc3'
 ]
 REQUIREMENTS_DEV = [
     'pep8',
