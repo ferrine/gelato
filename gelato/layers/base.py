@@ -1,10 +1,13 @@
-import six
 import functools
 import inspect
-import pymc3 as pm
-import pymc3.model
+
 import lasagne.layers.base
-from ..spec import DistSpec, get_default_spec
+import pymc3 as pm
+import six
+
+from gelato.specs.dist import get_default_spec
+from gelato.specs.base import DistSpec
+from pymc3.memoize import hashable
 
 __all__ = [
     'LayerModelMeta',
@@ -14,23 +17,18 @@ __all__ = [
 ]
 
 
-class LayerModelMeta(pymc3.model.InitContextMeta):
+class LayerModelMeta(pm.model.InitContextMeta):
     """Magic comes here
     """
-    def __new__(mcs, what, bases, dic):
-        # add model to bases to get all features from pymc3
-        bases = tuple(list(bases) + [pm.Model])
-        # create new class
-        newcls = super(LayerModelMeta, mcs).__new__(mcs, what, bases, dic)
-        return newcls
 
     def __init__(cls, what, bases, dic):
+        from gelato.layers.helper import find_parent
         super(LayerModelMeta, cls).__init__(what, bases, dic)
         # make flexible property for new class
 
         def fget(self):
             if self._name is None:
-                return '{}_{}'.format(self.__class__.__name__, id(self))
+                return '{}_{}'.format(self.__class__.__name__, self._fingerprint)
             else:
                 return self._name
 
@@ -48,6 +46,7 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
             @functools.wraps(__init__)
             def wrapped(self, *args, **kwargs):
                 name = kwargs.get('name')
+                self._fingerprint = hashable(self.parent)
                 pm.Model.__init__(self, name)
                 __init__(self, *args, **kwargs)
             return wrapped
@@ -56,10 +55,14 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
         def wrap_new(__new__):
             @functools.wraps(__new__)
             def wrapped(_cls_, *args, **kwargs):
+                parent = kwargs.get('model', None)
+                if parent is None and not issubclass(_cls_, lasagne.layers.InputLayer):
+                    incoming = kwargs.get('incoming',
+                                          kwargs.get('incomings',
+                                                     args[1]))
+                    parent = find_parent(incoming)
+                kwargs['model'] = parent
                 instance = __new__(_cls_, *args, **kwargs)
-                if instance.isroot:
-                    raise TypeError('Unable to init as root model, '
-                                    'need to be inside pymc3.Model context')
                 return instance
             return classmethod(wrapped)
 
@@ -68,7 +71,7 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
 
         def add_param(self, spec, shape, name=None, **tags):
             if not isinstance(spec, DistSpec):
-                spec = getattr(self, 'default_spec', get_default_spec())
+                spec = getattr(self, 'default_spec', get_default_spec(spec))
             if name is not None:
                 spec = spec.with_name(name)
             return lasagne.layers.base.Layer.add_param(
@@ -91,6 +94,13 @@ class LayerModelMeta(pymc3.model.InitContextMeta):
     def __repr__(self):
         return '{}.{}'.format(self.__module__, self.__name__)
 
+    @classmethod
+    def __subclasshook__(cls, C):
+        if lasagne.layers.Layer in C.__mro__ or pm.Model in C.__mro__:
+            return True
+        else:
+            return False
+
 
 def bayes(layercls):
     try:
@@ -103,9 +113,8 @@ def bayes(layercls):
             raise TypeError('{} is already bayesian'
                             .format(layercls))
         else:
-            class BayesianAnalog(
-                    six.with_metaclass(LayerModelMeta, layercls)
-                    ):
+            @six.add_metaclass(LayerModelMeta)
+            class BayesianAnalog(layercls, pm.Model):
                 pass
             frm = inspect.stack()[1]
             mod = inspect.getmodule(frm[0])

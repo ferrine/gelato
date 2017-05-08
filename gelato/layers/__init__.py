@@ -1,5 +1,5 @@
-from .base import *
 from .helper import *
+from .base import *
 from .conv import *
 from .dense import *
 from .local import *
@@ -10,3 +10,4 @@ from .shape import *
 from .embedding import *
 from .pool import *
 from .special import *
+from .stats import *

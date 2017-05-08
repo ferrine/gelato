@@ -1,6 +1,8 @@
 import pytest
-from pymc3 import Normal, Lognormal, Model
-from gelato.spec import DistSpec
+import numpy as np
+from pymc3 import Normal, Lognormal, Model, fit
+import theano.tensor as tt
+from gelato.specs import *
 
 
 class TestSpec(object):
@@ -101,12 +103,12 @@ _skip = [
 
 
 def setup_specs_kwargs():
-    from ..spec import __all__
-    from gelato import spec
+    from gelato.specs.dist import __all__
+    from gelato.specs import dist
     specs = [
-        getattr(spec, s)
+        getattr(dist, s)
         for s in __all__
-        if s in _for_test and s not in _skip
+        if s in set(_for_test.keys()) - set(_skip)
     ]
     specs_kwargs = []
     for spec in specs:
@@ -135,3 +137,40 @@ def test_spec(spec, kwargs):
             ==
             (10, 1, 10)
         )
+
+
+def pseudo_random(shape):
+    np.random.seed(sum(shape))
+    return np.random.randint(1, 5, size=shape).astype('int32')
+
+
+def _case4():
+    ss = NormalSpec().with_shape(lambda s: (s[0], 1)).dot(NormalSpec().with_shape(lambda s: (1, s[1]))) + LaplaceSpec()
+    ss = ss*ss
+    return ss
+
+
+def _case5():
+    lap = LaplaceSpec().with_shape(())
+    ss = NormalSpec().with_shape(lambda s: (s[0], 1)).dot(NormalSpec().with_shape(lambda s: (1, s[1]))) + lap
+    ss = ss*ss
+    return ss
+
+
+@pytest.mark.parametrize(
+    'expr',
+    [
+        (NormalSpec() + LaplaceSpec()) / 100 - NormalSpec(),
+        as_spec_op(tt.nlinalg.matrix_power)(NormalSpec() * LaplaceSpec(), 2) / 100 - NormalSpec(),
+        NormalSpec().with_shape(lambda s: (s[0], 1)).dot(NormalSpec().with_shape(lambda s: (1, s[1]))) + LaplaceSpec(),
+        _case4(), _case5()
+
+    ]
+)
+def test_expressions(expr):
+    with Model() as model:
+        var = expr((10, 10))
+        Normal('obs', observed=var)
+        assert var.tag.test_value.shape == (10, 10)
+        assert len(model.free_RVs) == 3
+        fit(1)

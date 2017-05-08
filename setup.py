@@ -7,9 +7,8 @@ here = os.path.abspath(os.path.dirname(__file__))
 
 REQUIREMENTS = [
     # use requirements.txt
-    #'theano',
-    #'lasagne',
-    #'pymc3'
+    'lasagne',
+#    'pymc3'
 ]
 REQUIREMENTS_DEV = [
     'pep8',
@@ -34,7 +33,7 @@ if __name__ == '__main__':
         name='gelato',
         version=VERSION,
         packages=find_packages(),
-        description='Bayesian desert for Lasagne',
+        description='Bayesian dessert for Lasagne',
         long_description=LONG_DESCRIPTION,
         author='Maxim Kochurov',
         author_email='maxim.v.kochurov@gmail.com',

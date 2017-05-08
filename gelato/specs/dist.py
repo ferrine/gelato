@@ -1,14 +1,12 @@
-import numpy as np
+import copy
+
 import pymc3 as pm
-import theano
-import pymc3.distributions.distribution as dist
-from pymc3.distributions.continuous import get_tau_sd
-import functools
+
+from gelato.specs.base import DistSpec, get_default_testval
 
 __all__ = [
     'get_default_spec',
     'set_default_spec',
-    'DistSpec',
     'PartialSpec',
     'UniformSpec',
     'NormalSpec',
@@ -20,7 +18,6 @@ __all__ = [
     'HalfCauchySpec',
     'GammaSpec',
     'WeibullSpec',
-    'HalfStudentTSpec',
     'LognormalSpec',
     'ChiSquaredSpec',
     'HalfNormalSpec',
@@ -30,97 +27,21 @@ __all__ = [
     'ExGaussianSpec',
     'VonMisesSpec',
     'SkewNormalSpec',
-    'NormalMixtureSpec'
+    # 'HalfStudentTSpec',
+    # 'NormalMixtureSpec'
 ]
-
-
-class DistSpec(object):
-    """Spec based on pymc3 distributions
-
-    Parameters
-    ----------
-    distcls : pymc3.Distribution
-    args : args for `distcls`
-    kwargs : kwargs for `distcls`
-
-    Usage
-    -----
-    spec = DistSpec(Normal, mu=0, sd=DistSpec(Lognormal, 0, 1))
-    """
-
-    def __init__(self, distcls, *args, **kwargs):
-        try:
-            valid_cls = issubclass(distcls, dist.Distribution)
-        except TypeError:
-            valid_cls = False
-        try:
-            valid_inst = isinstance(distcls, pm.Bound)
-        except ValueError:
-            valid_inst = False
-        if not (valid_cls or valid_inst):
-            raise ValueError('We can deal with pymc3 '
-                             'distributions only, got {!r} instead'
-                             .format(distcls))
-        self.args = args
-        self.kwargs = kwargs
-        self.distcls = distcls
-
-    def __call__(self, shape, name=None):
-        model = pm.modelcontext(None)
-        if name is None:
-            name = 'w{}'.format(len(model.vars))
-        called_args = self._call_args(self.args, name, shape)
-        called_kwargs = self._call_kwargs(self.kwargs, name, shape)
-        called_kwargs.update(shape=shape)
-        val = model.Var(
-                name, self.distcls.dist(
-                    *called_args,
-                    **called_kwargs,
-                    dtype=theano.config.floatX
-                ),
-            )
-        val.tag.test_value = val.random().reshape(shape).astype(val.dtype)
-        return val
-
-    def with_name(self, name):
-        return functools.partial(self, name=name)
-
-    def _call_args(self, args, name, shape):
-        return [
-            self._call(arg, '{}_arg{}'.format(name, i), shape)
-            for i, arg in enumerate(args)
-        ]
-
-    def _call_kwargs(self, kwargs, name, shape):
-        return {
-            key: self._call(arg, '{}_{}'.format(name, key), shape)
-            for key, arg in kwargs.items()
-        }
-
-    @staticmethod
-    def _call(arg, label, shape):
-        if callable(arg):
-            if isinstance(arg, DistSpec):
-                return arg(shape, label)
-            else:
-                raise TypeError(
-                    'Cannot proceed type {} in DistSpec'
-                    .format(type(arg))
-                )
-        else:
-            return arg
-
-    def __repr__(self):
-        template = '<{cls}: {args!r}; {kwargs!r}>'
-        return template.format(cls=self.distcls.__name__,
-                               args=self.args,
-                               kwargs=self.kwargs)
 
 _default_spec = DistSpec(pm.Normal, mu=0, sd=10)
 
 
-def get_default_spec():
-    return _default_spec
+def get_default_spec(testval=None):
+    # to avoid init collision
+    cp = copy.deepcopy(_default_spec)
+    if testval is None:
+        cp.testval = get_default_testval()
+    else:
+        cp.testval = testval
+    return cp
 
 
 def set_default_spec(spec):
@@ -154,7 +75,6 @@ class NormalSpec(PartialSpec):
     )
 
     def __init__(self, mu=0, sd=1):
-        sd = 1
         super(NormalSpec, self).__init__(mu=mu, sd=sd)
 
 
@@ -231,7 +151,7 @@ class GammaSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, alpha=None, beta=None):
+    def __init__(self, alpha, beta):
         super(GammaSpec, self).__init__(alpha=alpha, beta=beta)
 
 
@@ -244,20 +164,6 @@ class WeibullSpec(PartialSpec):
 
     def __init__(self, alpha, beta):
         super(WeibullSpec, self).__init__(alpha=alpha, beta=beta)
-
-
-class HalfStudentTSpec(PartialSpec):
-    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
-        dist=pm.HalfStudentT.distribution.__name__,
-        doc="""Bounded StudentT with support on [0, +inf]\n{doc}""".format(
-            doc=pm.StudentT.__doc__
-        )
-    )
-    spec = pm.HalfStudentT
-
-    def __init__(self, nu, mu=0, sd=1):
-        #raise NotImplementedError('Sorry, this has problems with inner implementation')
-        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
 
 
 class LognormalSpec(PartialSpec):
@@ -300,7 +206,7 @@ class WaldSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=None, lam=None, alpha=0.):
+    def __init__(self, mu, lam, alpha=0.):
         super(WaldSpec, self).__init__(mu=mu, lam=lam, alpha=alpha)
 
 
@@ -333,7 +239,7 @@ class ExGaussianSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0, sd=1, nu=None):
+    def __init__(self, mu, sd, nu):
         super(ExGaussianSpec, self).__init__(mu=mu, sigma=sd, nu=nu)
 
 
@@ -344,7 +250,7 @@ class VonMisesSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0.0, kappa=None):
+    def __init__(self, mu, kappa):
         super(VonMisesSpec, self).__init__(mu=mu, kappa=kappa)
 
 
@@ -355,10 +261,24 @@ class SkewNormalSpec(PartialSpec):
         doc=spec.__doc__
     )
 
-    def __init__(self, mu=0.0, sd=None, alpha=1):
+    def __init__(self, mu=0.0, sd=1, alpha=1):
         super(SkewNormalSpec, self).__init__(mu=mu, sd=sd, alpha=alpha)
 
+'''
+class HalfStudentTSpec(PartialSpec):
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=pm.HalfStudentT.distribution.__name__,
+        doc="""Bounded StudentT with support on [0, +inf]\n{doc}""".format(
+            doc=pm.StudentT.__doc__
+        )
+    )
+    spec = pm.HalfStudentT
 
+    def __init__(self, nu, mu=0, sd=1):
+        super(HalfStudentTSpec, self).__init__(nu=nu, mu=mu, sd=sd)
+'''
+
+'''
 class NormalMixtureSpec(PartialSpec):
     spec = pm.NormalMixture
     __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
@@ -375,3 +295,4 @@ class NormalMixtureSpec(PartialSpec):
             tau = np.asarray(tau)
         _, sd = get_tau_sd(tau, sd)
         super(NormalMixtureSpec, self).__init__(w=w, mu=mu, sd=sd)
+'''
