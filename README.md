@@ -5,7 +5,7 @@
 ![](img/gelato.jpg)
 
 # About
-Recent results in bayesian statistics for constructing robust neural networks have proved that it is one of the best ways to deal with uncertainty, overfitting but still having good performance. Gelato will help to use bayes for neural networks.
+Recent results in Bayesian statistics for constructing robust neural networks have proved that it is one of the best ways to deal with uncertainty, overfitting but still having good performance. Gelato will help to use bayes for neural networks.
 Library heavily relies on [Theano](https://github.com/Theano/Theano), [Lasagne](https://github.com/Lasagne/Lasagne) and [PyMC3](https://github.com/pymc-devs/pymc3).
 
 Installation
@@ -36,7 +36,7 @@ For comprehensive example of using `Gelato` you can reference [this](https://git
 
 Life Hack
 ---------
-Any `spec` class can be used standalone so feel free to use it everywhere (e.g. in [keras](https://github.com/fchollet/keras))
+Any `spec` class can be used standalone so feel free to use it everywhere
 
 References
 ----------
