@@ -1,5 +1,6 @@
 # Gelato
 [![](https://travis-ci.org/ferrine/gelato.svg?branch=master)](https://travis-ci.org/ferrine/gelato)
+[![Coverage Status](https://coveralls.io/repos/github/ferrine/gelato/badge.svg?branch=master)](https://coveralls.io/github/ferrine/gelato?branch=master)
 ## Bayesian dessert for Lasagne
 
 ![](img/gelato.jpg)
