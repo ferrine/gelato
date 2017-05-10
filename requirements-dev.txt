@@ -1,5 +1,3 @@
-pep8
-coverage
 pytest
 pytest-cov
-tox
+coveralls
