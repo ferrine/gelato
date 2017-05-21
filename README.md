@@ -29,7 +29,7 @@ Usage
 I use generic approach for decorating all Lasagne at once. Thus, for using Gelato you need to replace import statements for layers only. For constructing a network you need to be the in pm.Model context environment.
 
 **Warning**
- - `lasagne.layers.noise`, `lasagne.layers.normalization` are not supported yet
+ - `lasagne.layers.noise` is not supported yet
 
 Examples
 --------

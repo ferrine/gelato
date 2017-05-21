@@ -3,11 +3,11 @@ import inspect
 
 import lasagne.layers.base
 import pymc3 as pm
+from pymc3.memoize import hashable
 import six
 
-from gelato.specs.dist import get_default_spec
+from gelato.specs.dist import get_default_spec, FlatSpec
 from gelato.specs.base import DistSpec
-from pymc3.memoize import hashable
 
 __all__ = [
     'LayerModelMeta',
@@ -70,12 +70,19 @@ class LayerModelMeta(pm.model.InitContextMeta):
         cls.__new__ = wrap_new(cls.__new__)
 
         def add_param(self, spec, shape, name=None, **tags):
-            if not isinstance(spec, DistSpec):
-                spec = getattr(self, 'default_spec', get_default_spec(spec))
-            if name is not None:
-                spec = spec.with_name(name)
-            return lasagne.layers.base.Layer.add_param(
-                self, spec, shape, **tags)
+            if tags.get('trainable', True):
+                if tags.get('regularizable', True):
+                    if not isinstance(spec, DistSpec):
+                        spec = getattr(self, 'default_spec', get_default_spec(spec))
+                else:
+                    spec = FlatSpec()
+                if name is not None:
+                    spec = spec.with_name(name)
+                return lasagne.layers.base.Layer.add_param(
+                    self, spec, shape, **tags)
+            else:
+                return lasagne.layers.base.Layer.add_param(
+                    self, spec, shape, **tags)
         cls.add_param = add_param
 
         # needed for working with lasagne tools

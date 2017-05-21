@@ -1,7 +1,7 @@
 import copy
 
 import pymc3 as pm
-
+from lasagne import init
 from gelato.specs.base import DistSpec, get_default_testval
 
 __all__ = [
@@ -9,6 +9,7 @@ __all__ = [
     'set_default_spec',
     'PartialSpec',
     'UniformSpec',
+    'FlatSpec',
     'NormalSpec',
     'BetaSpec',
     'ExponentialSpec',
@@ -65,6 +66,17 @@ class UniformSpec(PartialSpec):
 
     def __init__(self, lower=0, upper=1):
         super(UniformSpec, self).__init__(lower=lower, upper=upper)
+
+
+class FlatSpec(PartialSpec):
+    spec = pm.Flat
+    __doc__ = """Gelato DistSpec with {dist} prior\n\n{doc}""".format(
+        dist=spec.__name__,
+        doc=spec.__doc__
+    )
+
+    def __init__(self):
+        super(FlatSpec, self).__init__(testval=init.Constant(0))
 
 
 class NormalSpec(PartialSpec):
