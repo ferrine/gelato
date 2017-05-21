@@ -8,8 +8,9 @@ except ImportError:
     raise ImportError('Need pymc3>=3.1')
 else:
     del pymc3
+    # for convenience
+    from pymc3.theanof import set_tt_rng, tt_rng
     from gelato.specs import *
-    from . import random
     from . import layers
     from . import specs
     from .version import __version__

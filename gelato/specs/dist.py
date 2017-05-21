@@ -32,7 +32,7 @@ __all__ = [
     # 'NormalMixtureSpec'
 ]
 
-_default_spec = DistSpec(pm.Normal, mu=0, sd=10)
+_default_spec = DistSpec(pm.Normal, mu=0, sd=10, testval=init.Normal())
 
 
 def get_default_spec(testval=None):
