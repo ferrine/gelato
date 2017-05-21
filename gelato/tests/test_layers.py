@@ -1,26 +1,26 @@
-from theano import theano, tensor as tt
-import pymc3 as pm
-from .datasets import generate_sinus_regression
+from theano import theano
+from .datasets import generate_linear_regression
 from gelato.layers import *
+import pymc3 as pm
 
 
-def test_posterior_layer():
+def test_stats_layers():
     intercept = .2
     slope = 2
-    x_, y_ = generate_sinus_regression(intercept, slope)
+    x_, _ = generate_linear_regression(intercept, slope)
     x = theano.shared(x_[None].T)
-    y = theano.shared(y_)
     inp = InputLayer((None, 1), input_var=x)
     nnet = DenseLayer(inp, 3)
     nnet = DenseLayer(nnet, 2)
-    nnet = PosteriorLayer(nnet)
-    with nnet.root:
+    nnet_post = PosteriorLayer(nnet)
+    nnet_sample = SamplingLayer(nnet, samples=10)
+    with nnet_post.root:
         approx = pm.MeanField()
-        out = get_output(nnet, approx=approx)
-        mu, logsd = out[:, 0], out[:, 1]
-        pm.Normal('lik', mu=mu.flatten(), sd=tt.exp(logsd).flatten(), observed=y)
-        inference = pm.ADVI.from_mean_field(approx)
-        inference.fit(10000)
-
-
-
+        out_ = get_output(nnet_post, approx=approx)
+        out = out_.eval()  # should work
+        assert out.shape == (x_.shape[0], 2)
+    with nnet_sample.root:
+        approx = pm.MeanField()
+        out_ = get_output(nnet_sample, approx=approx)
+        out = out_.eval()  # should work
+        assert out.shape == (10, x_.shape[0], 2)
