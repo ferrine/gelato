@@ -73,16 +73,15 @@ class LayerModelMeta(pm.model.InitContextMeta):
             if tags.get('trainable', True):
                 if tags.get('regularizable', True):
                     if not isinstance(spec, DistSpec):
+                        # here spec is like test value
+                        # passed to pymc3 distribution
                         spec = getattr(self, 'default_spec', get_default_spec(spec))
                 else:
                     spec = FlatSpec()
                 if name is not None:
                     spec = spec.with_name(name)
-                return lasagne.layers.base.Layer.add_param(
-                    self, spec, shape, **tags)
-            else:
-                return lasagne.layers.base.Layer.add_param(
-                    self, spec, shape, **tags)
+            return lasagne.layers.base.Layer.add_param(
+                self, spec, shape, **tags)
         cls.add_param = add_param
 
         # needed for working with lasagne tools
