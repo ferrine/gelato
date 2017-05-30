@@ -1,8 +1,6 @@
 import functools
 import inspect
-import imp
 import six
-import sys
 import lasagne.layers.base
 import pymc3 as pm
 from pymc3.memoize import hashable
