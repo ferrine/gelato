@@ -1,10 +1,11 @@
 import functools
 import inspect
-
+import imp
+import six
+import sys
 import lasagne.layers.base
 import pymc3 as pm
 from pymc3.memoize import hashable
-import six
 
 from gelato.specs.dist import get_default_spec, FlatSpec
 from gelato.specs.base import DistSpec
@@ -108,7 +109,7 @@ class LayerModelMeta(pm.model.InitContextMeta):
             return False
 
 
-def bayes(layercls):
+def bayes(layercls, stack=1):
     try:
         issubcls = issubclass(layercls, lasagne.layers.base.Layer)
     except TypeError:
@@ -122,7 +123,7 @@ def bayes(layercls):
             @six.add_metaclass(LayerModelMeta)
             class BayesianAnalog(layercls, pm.Model):
                 pass
-            frm = inspect.stack()[1]
+            frm = inspect.stack()[stack]
             mod = inspect.getmodule(frm[0])
             if mod is None:
                 modname = '__main__'

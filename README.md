@@ -28,7 +28,8 @@ Usage
 I use generic approach for decorating all Lasagne at once. Thus, for using Gelato you need to replace import statements for layers only. For constructing a network you need to be the in pm.Model context environment.
 
 **Warning**
- - `lasagne.layers.noise` is not supported
+-  `lasagne.layers.noise` is not supported
+-  functions from `lasagne.layers` are hidden in `gelato`. Some exceptions are done for `lasagne.layers.batch_norm` and `lasagne.layers.helpers`
 
 Examples
 --------
