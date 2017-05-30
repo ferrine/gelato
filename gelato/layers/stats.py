@@ -7,6 +7,10 @@ __all__ = [
 
 
 class PosteriorLayer(Layer):
+    """
+    Layer that makes replacements in the graph in the incoming layer 
+    so that `get_output` can be evaluated 
+    """
     def get_output_for(self, incoming, approx=None, deterministic=False, **kwargs):
         if approx is None:
             raise ValueError('No approximation specified')
@@ -14,6 +18,10 @@ class PosteriorLayer(Layer):
 
 
 class SamplingLayer(Layer):
+    """
+    Layer that makes replacements in the graph and additionally samples incoming 
+    layer.
+    """
     def __init__(self, incoming, samples=10, name=None):
         super(SamplingLayer, self).__init__(incoming, name=name)
         self.samples = samples

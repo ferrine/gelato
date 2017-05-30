@@ -5,7 +5,6 @@
 
 ![](img/gelato.jpg)
 
-# About
 Recent results in Bayesian statistics for constructing robust neural networks have proved that it is one of the best ways to deal with uncertainty, overfitting but still having good performance. Gelato will help to use bayes for neural networks.
 Library heavily relies on [Theano](https://github.com/Theano/Theano), [Lasagne](https://github.com/Lasagne/Lasagne) and [PyMC3](https://github.com/pymc-devs/pymc3).
 
@@ -29,7 +28,8 @@ Usage
 I use generic approach for decorating all Lasagne at once. Thus, for using Gelato you need to replace import statements for layers only. For constructing a network you need to be the in pm.Model context environment.
 
 **Warning**
- - `lasagne.layers.noise`, `lasagne.layers.normalization` are not supported yet
+-  `lasagne.layers.noise` is not supported
+-  functions from `lasagne.layers` are hidden in `gelato` as they use Lasagne classes. Some exceptions are done for `lasagne.layers.batch_norm` and `lasagne.layers.helpers`. I'll try to solve the problem generically in future.
 
 Examples
 --------
