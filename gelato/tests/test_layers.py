@@ -1,7 +1,6 @@
 from theano import theano
 from .datasets import generate_linear_regression
 from gelato.layers import *
-import gelato
 import pymc3 as pm
 
 
