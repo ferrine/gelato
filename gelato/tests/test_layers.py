@@ -1,7 +1,6 @@
 from theano import theano
 from .datasets import generate_linear_regression
 from gelato.layers import *
-import gelato
 import pymc3 as pm
 
 
@@ -25,18 +24,3 @@ def test_stats_layers():
         out_ = get_output(nnet_sample, approx=approx)
         out = out_.eval()  # should work
         assert out.shape == (10, x_.shape[0], 2)
-
-
-def test_normalizaton():
-    inp = InputLayer((None, 1))
-    nnet = BatchNormLayer(inp)
-    assert isinstance(nnet.mean, theano.compile.SharedVariable)
-    assert isinstance(nnet.inv_std, theano.compile.SharedVariable)
-    assert isinstance(nnet.gamma.distribution, gelato.get_default_spec().distcls)
-    assert isinstance(nnet.beta.distribution, pm.Flat)
-    y_l = DenseLayer(nnet, 2)
-    with y_l.root:
-        x, y = generate_linear_regression(1, 1)
-        y_ = get_output(y_l, x[:, None].astype('float32'))
-        pm.Normal('y', y_[:, 0], theano.tensor.exp(y_[:, 1]), observed=y.astype('float32'))
-        pm.fit(10)
