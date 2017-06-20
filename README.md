@@ -29,7 +29,8 @@ I use generic approach for decorating all Lasagne at once. Thus, for using Gelat
 
 **Warning**
 -  `lasagne.layers.noise` is not supported
--  functions from `lasagne.layers` are hidden in `gelato` as they use Lasagne classes. Some exceptions are done for `lasagne.layers.batch_norm` and `lasagne.layers.helpers`. I'll try to solve the problem generically in future.
+-  `lasagne.layers.normalization` is not supported (theano problems with default updates)
+-  functions from `lasagne.layers` are hidden in `gelato` as they use Lasagne classes. Some exceptions are done for `lasagne.layers.helpers`. I'll try to solve the problem generically in future.
 
 Examples
 --------
