@@ -32,7 +32,13 @@ __all__ = [
     # 'NormalMixtureSpec'
 ]
 
-_default_spec = DistSpec(pm.Normal, mu=0, sd=10, testval=init.Normal())
+
+def smart_init(shape):
+    if len(shape) > 1:
+        return init.GlorotUniform(shape)
+    else:
+        return init.Normal(shape)
+_default_spec = DistSpec(pm.Normal, mu=0, sd=10, testval=smart_init)
 
 
 def get_default_spec(testval=None):
@@ -76,7 +82,7 @@ class FlatSpec(PartialSpec):
     )
 
     def __init__(self):
-        super(FlatSpec, self).__init__(testval=init.Uniform())
+        super(FlatSpec, self).__init__(testval=init.Uniform(1))
 
 
 class NormalSpec(PartialSpec):
