@@ -2,7 +2,7 @@ import copy
 
 import pymc3 as pm
 from lasagne import init
-from gelato.specs.base import DistSpec, get_default_testval
+from gelato.specs.base import DistSpec, get_default_testval, smart_init
 
 __all__ = [
     'get_default_spec',
@@ -32,22 +32,18 @@ __all__ = [
     # 'NormalMixtureSpec'
 ]
 
-
-def smart_init(shape):
-    if len(shape) > 1:
-        return init.GlorotUniform(shape)
-    else:
-        return init.Normal(shape)
 _default_spec = DistSpec(pm.Normal, mu=0, sd=10, testval=smart_init)
 
 
 def get_default_spec(testval=None):
     # to avoid init collision
     cp = copy.deepcopy(_default_spec)
-    if testval is None:
+    if testval is None and cp.testval is None:
         cp.testval = get_default_testval()
-    else:
+    elif testval is not None:
         cp.testval = testval
+    else:
+        pass
     return cp
 
 
