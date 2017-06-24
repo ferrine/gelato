@@ -257,9 +257,9 @@ class DistSpec(SpecVar):
 
 def smart_init(shape):
     if len(shape) > 1:
-        return init.GlorotUniform(shape)
+        return init.GlorotUniform()(shape)
     else:
-        return init.Normal(shape)
+        return init.Normal()(shape)
 
 _default_testval = smart_init
 
