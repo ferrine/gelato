@@ -76,7 +76,7 @@ class FlatSpec(PartialSpec):
     )
 
     def __init__(self):
-        super(FlatSpec, self).__init__(testval=init.Constant(0))
+        super(FlatSpec, self).__init__(testval=init.Uniform())
 
 
 class NormalSpec(PartialSpec):
