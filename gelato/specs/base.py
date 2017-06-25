@@ -255,7 +255,13 @@ class DistSpec(SpecVar):
                                kwargs=self.kwargs)
 
 
-_default_testval = init.Normal(std=.01)
+def smart_init(shape):
+    if len(shape) > 1:
+        return init.GlorotUniform()(shape)
+    else:
+        return init.Normal()(shape)
+
+_default_testval = smart_init
 
 
 def set_default_testval(testval):
